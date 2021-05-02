@@ -7,8 +7,9 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <math.h>
 
-const int BMP_SIZE = 2000, ITERATIONS = 1024;
+const int BMP_SIZE = 2000, ITERATIONS = 512;
 const long double xmin = -2, xmax = 2;
 const long double xwidth = xmax - xmin;
 const long double ymin = -2, ymax = 2;
@@ -102,7 +103,7 @@ public:
     void draw(std::complex<long double> k) {
         bmp.create(BMP_SIZE, BMP_SIZE);
         DWORD* bits = bmp.bits();
-        int res, pos;
+        int res, pos, biggest = -1;
         std::complex<long double> c;
 
         for (int y = 0; y < BMP_SIZE; y++) {
@@ -111,8 +112,12 @@ public:
                 c.imag((double)y / (double)BMP_SIZE * yheight + ymin);
                 c.real((double)x / (double)BMP_SIZE * xwidth + xmin);
                 res = inSet(c, k);
+                if (biggest < res) {
+                    biggest = res;
+                }
                 if (res > 0) {
-                    int n_res = res % 255;
+                    //int n_res = res % 255;
+                    int n_res = mapRound(res, 0, ITERATIONS, 0, 255);
                     //if (res < (ITERATIONS >> 1)) res = RGB(n_res << 2, n_res << 3, n_res << 4);
                     //else res = RGB(n_res << 4, n_res << 2, n_res << 5);
                     res = RGB(0, n_res, 0);
@@ -120,9 +125,16 @@ public:
                 bits[pos++] = res;
             }
         }
+        printf("Biggest %d\n", biggest);
         bmp.saveBitmap("./js.bmp");
     }
 private:
+    int mapRound(int value, int min, int max, int newMin, int newMax) {
+        double range =(double)(max - min);
+        double newRange = (double)(newMax - newMin);
+        double newVal = ((double)(value - min) / range) * newRange;
+        return round(newVal + (double)newMin);
+    }
     int inSet(std::complex<long double> z, std::complex<long double> c) {
         long double dist;//, three = 3.0;
         for (int ec = 0; ec < ITERATIONS; ec++) {
