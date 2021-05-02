@@ -111,10 +111,11 @@ public:
                 c.imag((double)y / (double)BMP_SIZE * yheight + ymin);
                 c.real((double)x / (double)BMP_SIZE * xwidth + xmin);
                 res = inSet(c, k);
-                if (res) {
+                if (res > 0) {
                     int n_res = res % 255;
-                    if (res < (ITERATIONS >> 1)) res = RGB(n_res << 2, n_res << 3, n_res << 4);
-                    else res = RGB(n_res << 4, n_res << 2, n_res << 5);
+                    //if (res < (ITERATIONS >> 1)) res = RGB(n_res << 2, n_res << 3, n_res << 4);
+                    //else res = RGB(n_res << 4, n_res << 2, n_res << 5);
+                    res = RGB(0, n_res, 0);
                 }
                 bits[pos++] = res;
             }
@@ -127,7 +128,7 @@ private:
         for (int ec = 0; ec < ITERATIONS; ec++) {
             z = z * z; z = z + c;
             dist = (z.imag() * z.imag()) + (z.real() * z.real());
-            if (dist > 10) return(ec);
+            if (dist > 3) return(ec);
         }
         return 0;
     }
