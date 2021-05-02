@@ -3,6 +3,10 @@
 #include <complex>
 #include <ctime>  
 #include <chrono>
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <string>
 
 const int BMP_SIZE = 2000, ITERATIONS = 1024;
 const long double xmin = -2, xmax = 2;
@@ -131,12 +135,22 @@ private:
 };
 int main(int argc, char* argv[]) {
     std::complex<long double> c;
-    c.imag(0.2733);
-    c.real(0.27015);
-    auto start = std::chrono::system_clock::now();
-    julia j; j.draw(c); 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    printf("%f", elapsed_seconds.count());
+
+    long double cReal, cImg;
+
+    while (true) {
+        std::cout << "Real: ";
+        std::cin >> cReal;
+        std::cout << "Img: ";
+        std::cin >> cImg;
+
+        c.imag(cImg);
+        c.real(cReal);
+        auto start = std::chrono::system_clock::now();
+        julia j; j.draw(c);
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        printf("%f\n", elapsed_seconds.count());
+    }
     return 0;
 }
