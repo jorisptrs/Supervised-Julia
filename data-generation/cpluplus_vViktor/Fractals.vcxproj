@@ -139,7 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="Fractals.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="Julia.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
