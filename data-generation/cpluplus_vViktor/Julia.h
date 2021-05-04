@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Bitmap.h"
 
 
@@ -12,7 +14,7 @@ public:
 
     double escapeDistance;
 
-    julia(int pictureSize, int maxIterations, int xMin, int xMax, int yMin, int yMax, double escapeThreshold) {
+    julia(int pictureSize, int maxIterations, double xMin, double xMax, double yMin, double yMax, double escapeThreshold) {
         pixels = pictureSize;
         iterations = maxIterations;
         xmin = xMin;
@@ -24,9 +26,15 @@ public:
         escapeDistance = escapeThreshold;
     }
 
-    void draw(std::complex<long double> k) {
-        bmp.create(pixels, pixels);
-        DWORD* bits = bmp.bits();
+    std::string draw(std::complex<long double> k, bool isPicture=true) {
+        DWORD* bits = nullptr;
+        std::string output = "";
+
+        if (isPicture) {
+            bmp.create(pixels, pixels);
+            bits = bmp.bits();
+        }
+      
         int res, pos, biggest = -1;
         std::complex<long double> c;
 
@@ -40,17 +48,25 @@ public:
                     biggest = res;
                 }
                 if (res > 0) {
-                    //int n_res = res % 255;
-                    int n_res = mapRound(res, 0, iterations, 0, 255);
-                    //if (res < (iterations >> 1)) res = RGB(n_res << 2, n_res << 3, n_res << 4);
-                    //else res = RGB(n_res << 4, n_res << 2, n_res << 5);
-                    res = RGB(0, n_res, 0);
+                    if (isPicture) {
+                        int n_res = mapRound(res, 0, iterations, 0, 255);
+                        res = RGB(0, n_res, 0);
+                    }
                 }
-                bits[pos++] = res;
+                if (isPicture) {
+                    bits[pos++] = res;
+                }
+                else {
+                    output += (x == 0 ? "" : ",") + std::to_string(res);
+                }
             }
+            output += "\n";
         }
-        printf("Biggest %d\n", biggest);
-        bmp.saveBitmap("./js.bmp");
+        if (isPicture) {
+            printf("Biggest %d\n", biggest);
+            bmp.saveBitmap("./js.bmp");
+        }
+        return output;
     }
 private:
     int mapRound(int value, int min, int max, int newMin, int newMax) {
@@ -60,7 +76,7 @@ private:
         return round(newVal + (double)newMin);
     }
     int inSet(std::complex<long double> z, std::complex<long double> c) {
-        long double dist;//, three = 3.0;
+        long double dist;
         for (int ec = 0; ec < iterations; ec++) {
             z = z * z; z = z + c;
             dist = (z.imag() * z.imag()) + (z.real() * z.real());

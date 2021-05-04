@@ -38,6 +38,8 @@
 
 .vs/
 
+trainingData/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
