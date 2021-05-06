@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <string>
 #include <complex>
 #include <ctime>  
@@ -25,9 +24,9 @@ const bool INTERACTIVE = false;
 * Data generation
 */
 const int nData = 5;
-const double rStep = 0.5; // Radius step
-const double minDistanceOnCircle = 0.5; // For ideal space representation this should be close to rStep
-
+const double rStep = 10; // Radius step
+const double minDistanceOnCircle = 4; // For ideal space representation this should be close to rStep
+const double noiseMagnitude = 0.1; // Making this higher than rStep or minDst can lead to a data duplication
 
 void interactive() {
     std::complex<long double> c;
@@ -53,7 +52,7 @@ void interactive() {
 
 
 void generateData() {
-    Sampler * sampler = new Sampler(rStep, minDistanceOnCircle, nData);
+    Sampler * sampler = new Sampler(nData, rStep, minDistanceOnCircle, noiseMagnitude);
     int i = 0;
 
     std::string header = "SIZE=" + std::to_string(BMP_SIZE) + "\n"
@@ -64,13 +63,16 @@ void generateData() {
         + "YMAX=" + std::to_string(ymax) + "\n"
         + "ESCAPE_THRESHOLD=" + std::to_string(ESCAPE_THRESHOLD) + "\n"
         + "RSTEP=" + std::to_string(rStep) + "\n"
-        + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n";
+        + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n"
+        + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n";
+
+    std::ofstream headerFile("./trainingData/header.txt");
+    headerFile << header;
+    headerFile.close();
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
         std::string data = "";
-
-        data += header;
 
         julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         data += j.draw(c, false);

@@ -2,9 +2,9 @@
 
 #include <math.h>
 #include <complex>
+#include <random>
 
 #define M_PI 3.14159265358979323846
-
 
 class Sampler {
 public:
@@ -15,11 +15,14 @@ public:
 	int iCircle, nAchieved, nDesired;
 	double alpha;
 
-	Sampler(double radiusStep, double minDistanceOnCircle, int nData) {
+	double noiseStrength;
+
+	Sampler(int nData, double radiusStep, double minDistanceOnCircle, double noiseMagnitude) {
 		N = nData;
 		rStep = radiusStep;
 		minDistance = minDistanceOnCircle;
 		n = iCircle = 0;
+		noiseStrength = noiseMagnitude;
 		nextCircle();
 	}
 
@@ -36,8 +39,17 @@ public:
 			nextCircle();
 		}
 
-		constant.real(cos(alpha * (double)nAchieved) * currentR());
-		constant.imag(sin(alpha * (double)nAchieved) * currentR());
+		long double real = cos(alpha * (double)nAchieved) * currentR();
+		long double imag = sin(alpha * (double)nAchieved) * currentR();
+
+		double beta = randNum(M_PI * 2.0);
+		double noiseMagnitude = randNum(noiseStrength);
+
+		real += cos(beta) * noiseMagnitude;
+		imag += sin(beta) * noiseMagnitude;
+
+		constant.real(real);
+		constant.imag(imag);
 
 		nAchieved++;
 		n++;
@@ -48,6 +60,16 @@ private:
 
 	double currentR() {
 		return iCircle * rStep;
+	}
+
+	double randNum(double upperBound) {
+		return randNum(0.0, upperBound);
+	}
+
+	double randNum(double lowerBound, double upperBound) {
+		std::uniform_real_distribution<double> unif(lowerBound, upperBound);
+		std::default_random_engine re;
+		return unif(re);
 	}
 
 	double angle() {
