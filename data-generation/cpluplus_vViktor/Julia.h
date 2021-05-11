@@ -63,9 +63,9 @@ public:
             output += "\n";
         }
         if (isPicture) {
-            printf("Biggest %d\n", biggest);
             bmp.saveBitmap("./js.bmp");
         }
+        printf("Biggest %d\n", biggest);
         return output;
     }
 private:

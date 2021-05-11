@@ -12,7 +12,7 @@
 #include "Julia.h"
 #include "Sampler.h"
 
-const int BMP_SIZE = 2000;
+const int BMP_SIZE = 521;
 const int ITERATIONS = 512;
 const long double xmin = -2, xmax = 2;
 const long double ymin = -2, ymax = 2;
@@ -23,7 +23,16 @@ const bool INTERACTIVE = false;
 /*
 * Data generation
 */
-const int nData = 5;
+const int nData = 2000;
+const std::string type = "RANDOM";
+/*
+* REPRESENTATIVE data generation
+*/
+const double sampleRadius = 1;
+
+/*
+* RANDOM data generation
+*/
 const double rStep = 10; // Radius step
 const double minDistanceOnCircle = 4; // For ideal space representation this should be close to rStep
 const double noiseMagnitude = 0.1; // Making this higher than rStep or minDst can lead to a data duplication
@@ -52,19 +61,30 @@ void interactive() {
 
 
 void generateData() {
-    Sampler * sampler = new Sampler(nData, rStep, minDistanceOnCircle, noiseMagnitude);
+    Sampler* sampler = nullptr;
+    if (type == "REPRESENTATIVE") {
+        sampler = new Sampler(nData, rStep, minDistanceOnCircle, noiseMagnitude);
+    }
+    else if (type == "RANDOM") {
+        sampler = new Sampler(nData, sampleRadius);
+    }
     int i = 0;
 
-    std::string header = "SIZE=" + std::to_string(BMP_SIZE) + "\n"
+    std::string header = "PICTURE_SIZE=" + std::to_string(BMP_SIZE) + "\n"
+        + "N_DATA=" + std::to_string(nData) + "\n"
+        + "SAMPLING_TYPE=" + type + "\n"
         + "ITERATIONS=" + std::to_string(ITERATIONS) + "\n"
         + "XMIN=" + std::to_string(xmin) + "\n"
         + "XMAX=" + std::to_string(xmax) + "\n"
         + "YMIN=" + std::to_string(ymin) + "\n"
         + "YMAX=" + std::to_string(ymax) + "\n"
+        + "[REPRESENTATIVE]\n"
         + "ESCAPE_THRESHOLD=" + std::to_string(ESCAPE_THRESHOLD) + "\n"
         + "RSTEP=" + std::to_string(rStep) + "\n"
         + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n"
-        + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n";
+        + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n"
+        + "[RANDOM]\n"
+        + "SAMPLE_RADIUS=" + std::to_string(sampleRadius) + "\n";
 
     std::ofstream headerFile("./trainingData/header.txt");
     headerFile << header;
@@ -72,7 +92,11 @@ void generateData() {
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
-        std::string data = "";
+        std::string data = "c="
+            + std::to_string(c.real())
+            + ","
+            + std::to_string(c.imag())
+            + "\n";
 
         julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         data += j.draw(c, false);

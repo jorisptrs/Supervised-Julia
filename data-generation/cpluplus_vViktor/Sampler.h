@@ -6,8 +6,14 @@
 
 #define M_PI 3.14159265358979323846
 
+
+
 class Sampler {
 public:
+
+	enum Type {
+		REPRESENTATIVE, RANDOM
+	};
 
 	int N, n;
 	double rStep, minDistance;
@@ -17,13 +23,31 @@ public:
 
 	double noiseStrength;
 
+	int type;
+
+	std::mt19937 * generatorEngine;
+
+
 	Sampler(int nData, double radiusStep, double minDistanceOnCircle, double noiseMagnitude) {
-		N = nData;
+		init(nData, REPRESENTATIVE);
 		rStep = radiusStep;
 		minDistance = minDistanceOnCircle;
-		n = iCircle = 0;
+		iCircle = 0;
 		noiseStrength = noiseMagnitude;
 		nextCircle();
+	}
+
+	Sampler(int nData, double samplingRadius) {
+		init(nData, RANDOM);
+		rStep = samplingRadius;
+	}
+
+	void init(int nData, int type) {
+		this->N = nData;
+		this->n = 0;
+		this->type = type;
+		std::random_device randomEngine;
+		generatorEngine = new std::mt19937(randomEngine());
 	}
 
 	~Sampler() { }
@@ -33,6 +57,44 @@ public:
 	}
 
 	std::complex<long double> next() {
+		std::complex<long double> c;
+		switch (type)
+		{
+		case REPRESENTATIVE:
+			c = nextCircular();
+			break;
+		case RANDOM:
+			c = nextUniform();
+			break;
+		default:
+			printf("Bad sampler type.\n");
+			c.imag(nan(""));
+			c.real(nan(""));
+			break;
+		}
+		n++;
+		return c;
+	}
+
+private:
+
+	std::complex<long double> nextUniform() {
+		std::complex<long double> constant;
+		double real, imag;
+		double alpha, r;
+
+		alpha = randNum(2 * M_PI);
+		r = randNum(0.000001, rStep);
+		
+		real = cos(alpha) * r;
+		imag = sin(alpha) * r;
+
+		constant.real(real);
+		constant.imag(imag);
+		return constant;
+	}
+
+	std::complex<long double> nextCircular() {
 		std::complex<long double> constant;
 
 		if (isNextCircle()) {
@@ -52,11 +114,8 @@ public:
 		constant.imag(imag);
 
 		nAchieved++;
-		n++;
 		return constant;
 	}
-
-private:
 
 	double currentR() {
 		return iCircle * rStep;
@@ -68,8 +127,7 @@ private:
 
 	double randNum(double lowerBound, double upperBound) {
 		std::uniform_real_distribution<double> unif(lowerBound, upperBound);
-		std::default_random_engine re;
-		return unif(re);
+		return unif(*generatorEngine);
 	}
 
 	double angle() {
