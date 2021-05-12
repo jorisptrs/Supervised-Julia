@@ -1,4 +1,16 @@
+# Jupyter Notebook 
+.ipynb_checkpoints/
+
+# Images
 *.bmp
+
+# Visual Studio Project 
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+#Testing
+trainingData/
 
 # Files built by Visual Studio
 *_i.c
@@ -37,8 +49,6 @@
 *.sln.docstates
 
 .vs/
-
-trainingData/
 
 # Build results
 [Dd]ebug/
