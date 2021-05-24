@@ -1,15 +1,11 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn.modules.activation import Sigmoid
 
 class Autoencoder(nn.Module):
-    def __init__(self, data_dims, latent_dims, device):
+    
+    def __init__(self, data_dims, latent_dims):
         super(Autoencoder, self).__init__()
-
-        self.device = device # No idea if the gpu thing actually works
-        self.to(device)
 
         self.encoder = nn.Sequential(
             nn.Linear(data_dims, 512),
@@ -34,11 +30,11 @@ class Autoencoder(nn.Module):
         self.load_state_dict(torch.load(path))
         self.eval()
 
-    def train(self, data, epochs=20):
+    def train(self, data, device, epochs=20):
         opt = torch.optim.Adam(self.parameters())
         for epoch in range(epochs):
             for x,_ in data:
-                x = x.to(self.device) # GPU
+                x = x.to(device) # GPU
                 opt.zero_grad()
                 x_hat = self(x)
                 loss = ((x - x_hat)**2).sum()

@@ -1,4 +1,5 @@
-from juliaDataset import JuliaDataSet
+
+from juliaDataset import JuliaDataset
 from autoencoder import Autoencoder
 
 import torch
@@ -9,13 +10,13 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 
-juliaDataset = JuliaDataSet()
+juliaDataset = JuliaDataset()
 juliaDataset.load_images('trainingData/data', 4)
 
 data_loader = torch.utils.data.DataLoader(juliaDataset, batch_size=128, shuffle=True)
 
-autoencoder = Autoencoder(juliaDataset.image_size, 2, device)
-autoencoder.train(data_loader)
+autoencoder = Autoencoder(juliaDataset.image_vec_size, 2).to(device)
+autoencoder.train(data_loader, device)
 
 autoencoder.save()
 

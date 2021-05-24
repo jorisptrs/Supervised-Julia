@@ -1,16 +1,16 @@
 
 import numpy as np
-import torch
+import torch.utils.data as tdata
 
-class JuliaDataSet(torch.utils.data.Dataset):
+class JuliaDataset(tdata.Dataset):
 
     def __init__(self):
         self.num_images = 0
-        self.image_size = 0
+        self.image_vec_size = 0
         self.x = []
         self.y_target = []
        
-    def load_images(self, path, num_images):       
+    def load_images(self, path, num_images, compress=True):       
         for index in range(num_images):
             with open(path + str(index) + '.jset', 'r') as file:
                 y_target_str = file.readline()[2:].rstrip()
@@ -22,12 +22,14 @@ class JuliaDataSet(torch.utils.data.Dataset):
                 for line in x_str_lines:
                     x_lines.append(np.fromstring(line, dtype=np.float32, sep=','))
 
-                self.x.append(self.compress(np.array(x_lines)))
+                x_lines = np.array(x_lines)
+                x_lines = self.compress(x_lines) if compress else x_lines
+                self.x.append(x_lines)
 
         self.y_target = np.array(self.y_target)
         self.x = np.array(self.x)
         self.num_images = num_images
-        self.image_size = self.x.shape[1]
+        self.image_vec_size = self.x.shape[1]
 
     def compress(self, x):
         for i in range(26):
@@ -35,6 +37,9 @@ class JuliaDataSet(torch.utils.data.Dataset):
                 x[i, j] = np.mean(x[i*20:(i+1)*20, j*20:(j+1)*20])
         return x[:26,:26].reshape(676)
         
+
+    # Functions required to be implemented by torch Dataset object    
+
     def __len__(self):
         return self.num_images
     
