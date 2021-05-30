@@ -1,59 +1,72 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 import random
-#from sklearn.model_selection import train_test_split
+import numpy as np
 
 class Net(nn.Module):
 
     def __init__(self, w):
-        self.w = w
         super(Net, self).__init__()
-        # 1 input image channel, 6 output channels, 5x5 square convolution
-        # kernel
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        # an affine operation: y = Wx + b
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)  # 5*5 from image dimension
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
+        
+        self.w = w
 
+        self.cnn_layers = nn.Sequential(
+            # Defining a 2D convolution layer
+            nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            # Defining another 2D convolution layer
+            nn.Conv2d(4, 4, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+
+        self.linear_layers = nn.Sequential(
+            nn.Linear(4 * 7 * 7, 2)
+        )
+
+    # Defining the forward pass    
     def forward(self, x):
-        # Max pooling over a (2, 2) window
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        # If the size is a square, you can specify with a single number
-        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
-        x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.cnn_layers(x)
+        x = x.view(x.size(0), -1)
+        x = self.linear_layers(x)
         return x
     
-    # Replacement of sklearn implementation, 
-    def train_test_split(dataset, split=0.60):
-        train = list()
-        train_size = split * len(dataset)
-        dataset_copy = list(dataset)
-        while len(train) < train_size:
-            index = randrange(len(dataset_copy))
-            train.append(dataset_copy.pop(index))
-        return train, dataset_copy
     
-    def train(self, x, y, device, test_prop = .1, epochs = 20):
-        #random.shuffle(x)
-        torch.utils.data.random_split(dataset, lengths)
-        train_x, val_x, train_y, val_y = train_test_split(x, y, test_size = test_prop)
+    def train(self, train_x, train_y, val_x, val_y, device, epochs = 20):
+        tr_loss = 0
+        # getting the training set
+        x_train, y_train = Variable(train_x), Variable(train_y)
+        # getting the validation set
+        x_val, y_val = Variable(val_x), Variable(val_y)
+        # converting the data into GPU format
+        if torch.cuda.is_available():
+            x_train = x_train.cuda()
+            y_train = y_train.cuda()
+            x_val = x_val.cuda()
+            y_val = y_val.cuda()
+
+        # clearing the Gradients of the model parameters
+        self.optimizer.zero_grad()
         
-        train_x.reshape((-1,1,self.w,self.w))
-        train_x.x = torch.Tensor(train_x)
+        # prediction for training and validation set
+        output_train = model(x_train)
+        output_val = model(x_val)
 
-        train_y.reshape((-1,2))
-        train_y = torch.Tensor(train_y)
+        # computing the training and validation loss
+        loss_train = criterion(output_train, y_train)
+        loss_val = criterion(output_val, y_val)
+        train_losses.append(loss_train)
+        val_losses.append(loss_val)
 
-        val_x.reshape((-1,1,self.w,self.w))
-        val_x.x = torch.Tensor(val_x)
-
-        val_y.reshape((-1,2))
-        val_y = torch.Tensor(val_y)
-
-        (train_x.shape, train_y.shape), (val_x.shape, val_y.shape)
+        # computing the updated weights of all the model parameters
+        loss_train.backward()
+        optimizer.step()
+        tr_loss = loss_train.item()
+        if epoch%2 == 0:
+            # printing the validation loss
+            print('Epoch : ',epoch+1, '\t', 'loss :', loss_val)
