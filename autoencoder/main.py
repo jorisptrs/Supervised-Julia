@@ -8,7 +8,6 @@ import torch.nn as nn
 from torch.optim import Adam, SGD
 import matplotlib.pyplot as plt
 import numpy as np
-from torch.optim import Adam, SGD 
 
 import os
 
@@ -44,6 +43,7 @@ def reshape(x, y, test_prop = .2,):
     train_x, train_y, val_x, val_y = shuffle_split_data(x, y, test_prop)
     
     train_x = train_x.reshape((-1,1,W,W))
+
     train_x = torch.Tensor(train_x)
 
     train_y = train_y.reshape((-1,2))
@@ -97,9 +97,9 @@ def plot_comparison(img):
     f, ax = plt.subplots(n,2)
     for i in range(n):
         # Plot training example
-        ax[i,0].imshow(juliaDataset.x[i].reshape(W, W))
+        ax[i,0].imshow(juliaDataset.x[i].reshape(W, W), cmap='gray', vmin=0, vmax=1))
         # Plot reconstructed training example    
-        ax[i,1].imshow(img[i].reshape(W, W))
+        ax[i,1].imshow(img[i].reshape(W, W), cmap='gray', vmin=0, vmax=1))
 
 def plot_reconstructed(autoencoder, img):
     r0=(-5, 10)
@@ -115,7 +115,7 @@ def plot_reconstructed(autoencoder, img):
             z = torch.Tensor([[x, y]]).to(device)
             x_hat = autoencoder.decoder(z)
             x_hat = x_hat.reshape(W, W).to('cpu').detach().numpy()
-            img[(n-1-i)*W:(n-1-i+1)*W, j*W:(j+1)*W] = x_hat
+            img[(n-1-i)*W:(n-1-i+1)*W, j*W:(j+1)*W] = x_hat # UGLY :-()---<===D
     plt.imshow(img, extent=[*r0, *r1])
 
 autoencode()

@@ -2,6 +2,8 @@
 import numpy as np
 import torch.utils.data as tdata
 
+# TODO bluescale images
+
 class JuliaDataset(tdata.Dataset):
 
     def __init__(self):

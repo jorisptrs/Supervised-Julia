@@ -1,5 +1,7 @@
 #pragma once
 
+// https://rosettacode.org/wiki/Julia_set#C.2B.2B Code
+
 #include <string>
 
 #include "Bitmap.h"

@@ -7,6 +7,7 @@ class Autoencoder(nn.Module):
     def __init__(self, data_dims, latent_dims):
         super(Autoencoder, self).__init__()
 
+        # 270000
         self.encoder = nn.Sequential(
             nn.Linear(data_dims, 512),
             nn.ReLU(True),

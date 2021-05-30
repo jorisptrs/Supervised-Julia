@@ -5,6 +5,8 @@ from torch.autograd import Variable
 import random
 import numpy as np
 
+# TODO lienar dimensions aoutomatic
+
 class Net(nn.Module):
 
     def __init__(self, w):
@@ -22,7 +24,7 @@ class Net(nn.Module):
             nn.Conv2d(4, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
         self.linear_layers = nn.Sequential(
@@ -67,6 +69,6 @@ class Net(nn.Module):
         loss_train.backward()
         optimizer.step()
         tr_loss = loss_train.item()
-        if epoch%2 == 0:
+        if epoch % 2 == 0:
             # printing the validation loss
             print('Epoch : ',epoch+1, '\t', 'loss :', loss_val)
