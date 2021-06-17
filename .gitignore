@@ -1,6 +1,11 @@
-# Model
+# Our Training Data
+trainingData/
 
+# Default Model Output
 *model
+
+# Testing MNIST Data
+**/*MNIST/
 
 # Python
 __pycache__/
@@ -12,13 +17,16 @@ __pycache__/
 # Images
 *.bmp
 
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
 # Visual Studio Project 
 *.vcxproj
 *.vcxproj.filters
 *.sln
-
-#Testing
-trainingData/
 
 # Files built by Visual Studio
 *_i.c

@@ -22,7 +22,7 @@ TEST_SET_PROP = .2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 juliaDataset = JuliaDataset()
-juliaDataset.load_images(os.path.join('..','trainingData','data'), TRAINING_SET_SIZE, True, W)
+juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, True, W)
 
 data_loader = torch.utils.data.DataLoader(juliaDataset, batch_size=BATCH_SIZE, shuffle=True)
 
@@ -41,7 +41,7 @@ def shuffle_split_data(X, y, test_prop):
 
 def reshape(x, y, test_prop = .2,):
     train_x, train_y, val_x, val_y = shuffle_split_data(x, y, test_prop)
-    
+
     train_x = train_x.reshape((-1,1,W,W))
 
     train_x = torch.Tensor(train_x)
@@ -70,7 +70,7 @@ def feedforward():
         model = model.cuda()
         criterion = criterion.cuda()
     train_x, train_y, val_x, val_y = reshape(juliaDataset.x, juliaDataset.y, TEST_SET_PROP)
-    
+
     model.train(train_x, train_y, val_x, val_y, device, EPOCHS)
     print(model)
 
@@ -97,9 +97,9 @@ def plot_comparison(img):
     f, ax = plt.subplots(n,2)
     for i in range(n):
         # Plot training example
-        ax[i,0].imshow(juliaDataset.x[i].reshape(W, W), cmap='gray', vmin=0, vmax=1))
-        # Plot reconstructed training example    
-        ax[i,1].imshow(img[i].reshape(W, W), cmap='gray', vmin=0, vmax=1))
+        ax[i,0].imshow(juliaDataset.x[i].reshape(W, W), cmap='gray', vmin=0, vmax=1)
+        # Plot reconstructed training example
+        ax[i,1].imshow(img[i].reshape(W, W), cmap='gray', vmin=0, vmax=1)
 
 def plot_reconstructed(autoencoder, img):
     r0=(-5, 10)
@@ -118,5 +118,7 @@ def plot_reconstructed(autoencoder, img):
             img[(n-1-i)*W:(n-1-i+1)*W, j*W:(j+1)*W] = x_hat # UGLY :-()---<===D
     plt.imshow(img, extent=[*r0, *r1])
 
-autoencode()
-#feedforward()
+
+if __name__ == "__main__":
+    autoencode()
+    # feedforward()
