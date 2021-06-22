@@ -78,8 +78,8 @@ void generateData() {
         + "XMAX=" + std::to_string(xmax) + "\n"
         + "YMIN=" + std::to_string(ymin) + "\n"
         + "YMAX=" + std::to_string(ymax) + "\n"
-        + "[REPRESENTATIVE]\n"
         + "ESCAPE_THRESHOLD=" + std::to_string(ESCAPE_THRESHOLD) + "\n"
+        + "[REPRESENTATIVE]\n"
         + "RSTEP=" + std::to_string(rStep) + "\n"
         + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n"
         + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n"
@@ -92,8 +92,7 @@ void generateData() {
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
-        std::string data = "c="
-            + std::to_string(c.real())
+        std::string data = std::to_string(c.real())
             + ","
             + std::to_string(c.imag())
             + "\n";
