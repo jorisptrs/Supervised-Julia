@@ -26,7 +26,6 @@ __pycache__/
 # Visual Studio Project 
 *.vcxproj
 *.vcxproj.filters
-*.sln
 
 # Files built by Visual Studio
 *_i.c
