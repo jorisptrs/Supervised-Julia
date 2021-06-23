@@ -23,7 +23,7 @@ const bool INTERACTIVE = false;
 /*
 * Data generation
 */
-const int nData = 2000;
+const int nData = 10;
 const std::string type = "RANDOM";
 /*
 * REPRESENTATIVE data generation
@@ -92,13 +92,18 @@ void generateData() {
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
-        std::string data = std::to_string(c.real())
+        std::string label = std::to_string(c.real())
             + ","
-            + std::to_string(c.imag())
-            + "\n";
+            + std::to_string(c.imag());
+
+        std::ofstream labelFile("./trainingData/data" + std::to_string(i) + ".label");
+        labelFile << label;
+        labelFile.close();
 
         julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
-        data += j.draw(c, false);
+        std::string data;
+
+        data = j.draw(c, false);
 
         std::ofstream dataFile("./trainingData/data" +  std::to_string(i) + ".jset");
         dataFile << data;
