@@ -23,7 +23,7 @@ const bool INTERACTIVE = false;
 /*
 * Data generation
 */
-const int nData = 10;
+const int nData = 3000;
 const std::string type = "RANDOM";
 /*
 * REPRESENTATIVE data generation

@@ -51,34 +51,28 @@ class JuliaDataset(tdata.Dataset):
                     self.maxX = int(value)
                     self.minX = 0
                 
-                if name == "XMAX":
+                if name == "SAMPLE_RADIUS":
                     temp = float(value)
                     self.maxY = temp
                     self.minY = -temp
-                
 
 
+        print("Data loading ... ")
         for index in range(num_images):
-            with open(os.path.join(path, "data" + str(index) + '.jset'), 'r') as file:
-                y_str = file.readline()[2:].rstrip()
-                x_str_lines = file.readlines()
-
-                self.y.append(np.fromstring(y_str, dtype=np.float32, sep=','))
-
-                x_lines = []
-                for line in x_str_lines:
-                    x_lines.append(np.fromstring(line, dtype=np.float32, sep=','))
-
-                training_example = np.array(x_lines)
-                training_example_compressed = self.compress(training_example, compressed_width) if compress else training_example
+            tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
+            tempX = self.compress(tempX, compressed_width) if compress else tempX
+            self.x.append(tempX)
+            self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), delimiter=","))
             
-                self.x.append(training_example_compressed.reshape(compressed_width, compressed_width))
 
         self.y = np.array(self.y)
         self.x = np.array(self.x)
         
         self.x = normalize(self.minX, self.maxX, self.x)
-        self.y = normalize(self.minY, self.maxY, self.y)
+
+        print("Data loaded")
+        print(self.x.shape)
+        print(self.y.shape)
 
         self.num_images = num_images
         self.image_vec_size = self.x.shape[1]
@@ -113,7 +107,7 @@ class JuliaDataset(tdata.Dataset):
         for i in range(compressed_width):
             for j in range(compressed_width):
                 img[i, j] = np.mean(img[i*n:(i+1)*n, j*n:(j+1)*n])
-        return img[:compressed_width,:compressed_width].reshape(compressed_width**2) 
+        return img[:compressed_width,:compressed_width] 
 
     # Functions required to be implemented by torch Dataset object    
 

@@ -10,8 +10,8 @@ import numpy as np
 
 import os
 
-BATCH_SIZE = 128
-TRAINING_SET_SIZE = 2000
+BATCH_SIZE = 32
+TRAINING_SET_SIZE = 512
 
 # Width to which each image will be downsampled
 W = 28
@@ -22,7 +22,7 @@ TEST_SET_PROP = .2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 juliaDataset = JuliaDataset()
-juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, True, W)
+juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, False, W)
 
 data_loader = torch.utils.data.DataLoader(juliaDataset, batch_size=BATCH_SIZE, shuffle=True)
 
