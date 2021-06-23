@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 # TODO lienar dimensions aoutomatic
 
@@ -14,6 +15,7 @@ class Net(nn.Module):
         
         self.w = w
         self.optimizer = None
+        self.losses = None
 
         self.cnn_layers = nn.Sequential(
             # Defining a 2D convolution layer
@@ -51,26 +53,38 @@ class Net(nn.Module):
          
 
 
+    def graph_loss(self):
+        plt.title("Training loss")
+        plt.plot(self.losses,label="train")
+        plt.xlabel("Batches")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.show()
+
 
     def train(self, trainLoader, device, loss_func, epochs = 20):
 
-
+        self.losses = []
         for epoch in range(epochs):
 
             running_loss = 0.0
 
             print("Epochs: " + str(epoch + 1) + " out of " + str(epochs))
 
-            for i, data in enumerate(trainLoader, 0):
-
-                x, y = data
+            for x, y in trainLoader:
 
                 x = x.to(device)
                 y = y.to(device)
 
                 running_loss += self.batch(x, y, loss_func)
-                print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 200))
-                running_loss = 0.0
+            
+            self.losses.append(running_loss)
+
+        self.graph_loss()
+        
+
+
+                
+                
 
             
