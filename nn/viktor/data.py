@@ -59,6 +59,7 @@ class JuliaDataset(tdata.Dataset):
 
         print("Data loading ... ")
         for index in range(num_images):
+            print(index)
             tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
             tempX = self.compress(tempX, compressed_width) if compress else tempX
             self.x.append(tempX)

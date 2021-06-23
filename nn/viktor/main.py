@@ -10,53 +10,26 @@ import numpy as np
 
 import os
 
-BATCH_SIZE = 128
-TRAINING_SET_SIZE = 3000
+BATCH_SIZE = 20
+TRAINING_SET_SIZE = 20
+
 
 # Width to which each image will be downsampled
 W = 28
 LATENT_DIMS = 2
-EPOCHS = 60
-TEST_SET_PROP = .2
+EPOCHS = 80
+TEST_SET_PROP = .8
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 juliaDataset = JuliaDataset()
 juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, True, W)
 
-data_loader = torch.utils.data.DataLoader(juliaDataset, batch_size=BATCH_SIZE, shuffle=True)
-
-print("Device: " + device)
-
-def shuffle_split_data(X, y, test_prop):
-    # taken from https://stackoverflow.com/questions/35932223/writing-a-train-test-split-function-with-numpy
-    arr_rand = np.random.rand(X.shape[0])
-    split = arr_rand < np.percentile(arr_rand, 100*(1-test_prop))
-
-    X_train = X[split]
-    y_train = y[split]
-    X_test =  X[~split]
-    y_test = y[~split]
-
-    return X_train, y_train, X_test, y_test
-
-def reshape(x, y, test_prop = .2,):
-    train_x, train_y, val_x, val_y = shuffle_split_data(x, y, test_prop)
-
-    train_x = train_x.reshape((-1,1,W,W))
-
-    train_x = torch.Tensor(train_x)
-
-    train_y = train_y.reshape((-1,2))
-    train_y = torch.Tensor(train_y)
-
-    val_x = val_x.reshape((-1,1,W,W))
-    val_x = torch.Tensor(val_x)
-
-    val_y = val_y.reshape((-1,2))
-    val_y = torch.Tensor(val_y)
-
-    return train_x, train_y, val_x, val_y
+train_n = int(TRAINING_SET_SIZE * TEST_SET_PROP)
+valid_n = TRAINING_SET_SIZE - train_n
+train, validation = torch.utils.data.random_split(juliaDataset, [train_n, valid_n])
+data_loader = torch.utils.data.DataLoader(train, batch_size=BATCH_SIZE, shuffle=True)
+validation_loader = torch.utils.data.DataLoader(validation, shuffle=False, batch_size=len(validation))
 
 def feedforward():
     # Train a simple feed-forward NN to predict constants
@@ -71,7 +44,15 @@ def feedforward():
         model = model.cuda()
         criterion = criterion.cuda()
 
-    print(model(torch.from_numpy(juliaDataset.x).float()))
+    model.train(
+        data_loader,
+        validation_loader,
+        device,
+        criterion, 
+        EPOCHS
+    )
+
+    model.validation(validation_loader, device, criterion, True)
 
 
 def plot_comparison(img):

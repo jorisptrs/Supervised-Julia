@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -16,6 +14,8 @@ class Net(nn.Module):
         self.w = w
         self.optimizer = None
         self.losses = None
+        self.valLosses = None
+        self.validation_loader = None
 
         self.float()
 
@@ -36,7 +36,32 @@ class Net(nn.Module):
             nn.Linear(4 * 7 * 7, 2)
         )
 
+    def validation(self, validationLoader, device, loss_func, output=False):
+        
+        loss = 0.0
+        # TODO this should not be a forcycle
+        yhat = None
+        y = None
+        x = None
+        for x,y in validationLoader:
+            x = x.to(device)
+            y = y.to(device)
 
+            yhat = self.forward(x.float())
+            loss += loss_func(yhat, y)
+        
+        if output:
+            torch.set_printoptions(edgeitems=14)
+            for i, pred in enumerate(yhat):
+                yreal = y[i]
+                #print(x[i])
+                print("y^=" + str(pred[0].item()) + "," + str(pred[1].item()) + 
+                " y=" + str(yreal[0].item()) + "," + str(yreal[1].item()))
+            
+
+
+        return loss.item()
+            
     # Defining the forward pass    
     def forward(self, x):
         x = x.unsqueeze(dim=1)
@@ -44,12 +69,13 @@ class Net(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.linear_layers(x)
         return x
-    
-    
+
     def batch(self, x, y, loss_func):
         yhat = self.forward(x)
         loss = loss_func(yhat, y)
         loss.backward()
+        for name, param in self.named_parameters():
+            print(name, param.grad.abs().sum())
         self.optimizer.step()
         self.optimizer.zero_grad()
         return loss.item()
@@ -57,28 +83,34 @@ class Net(nn.Module):
     def graph_loss(self):
         plt.title("Training loss")
         plt.plot(self.losses, label="train")
-        plt.xlabel("Batches")
+        plt.plot(self.valLosses, label="validation")
+        plt.xlabel("Epochs")
         plt.ylabel("Loss")
         plt.legend()
         plt.show()
 
-    def train(self, trainLoader, device, loss_func, epochs = 20):        
+    def train(self, trainLoader, validationLoader, device, loss_func, epochs = 20):        
 
         self.losses = []
+        self.valLosses = []
         for epoch in range(epochs):
 
             running_loss = 0.0
 
             print("Epochs: " + str(epoch + 1) + " out of " + str(epochs))
 
+            n = 0
             for x, y in trainLoader:
 
                 x = x.to(device)
                 y = y.to(device)
 
+                n += 1
                 running_loss += self.batch(x.float(), y.float(), loss_func)
             
-            self.losses.append(running_loss)
+            self.losses.append(running_loss / n)
+            self.valLosses.append(self.validation(validationLoader, device, loss_func))
+            
 
         self.graph_loss()
         
