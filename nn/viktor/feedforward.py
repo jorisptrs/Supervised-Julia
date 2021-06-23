@@ -17,6 +17,8 @@ class Net(nn.Module):
         self.optimizer = None
         self.losses = None
 
+        self.float()
+
         self.cnn_layers = nn.Sequential(
             # Defining a 2D convolution layer
             nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
@@ -33,6 +35,7 @@ class Net(nn.Module):
         self.linear_layers = nn.Sequential(
             nn.Linear(4 * 7 * 7, 2)
         )
+
 
     # Defining the forward pass    
     def forward(self, x):
@@ -51,18 +54,15 @@ class Net(nn.Module):
         self.optimizer.zero_grad()
         return loss.item()
          
-
-
     def graph_loss(self):
         plt.title("Training loss")
-        plt.plot(self.losses,label="train")
+        plt.plot(self.losses, label="train")
         plt.xlabel("Batches")
         plt.ylabel("Loss")
         plt.legend()
         plt.show()
 
-
-    def train(self, trainLoader, device, loss_func, epochs = 20):
+    def train(self, trainLoader, device, loss_func, epochs = 20):        
 
         self.losses = []
         for epoch in range(epochs):
@@ -76,7 +76,7 @@ class Net(nn.Module):
                 x = x.to(device)
                 y = y.to(device)
 
-                running_loss += self.batch(x, y, loss_func)
+                running_loss += self.batch(x.float(), y, loss_func)
             
             self.losses.append(running_loss)
 

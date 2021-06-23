@@ -10,8 +10,8 @@ import numpy as np
 
 import os
 
-BATCH_SIZE = 32
-TRAINING_SET_SIZE = 512
+BATCH_SIZE = 30
+TRAINING_SET_SIZE = 30
 
 # Width to which each image will be downsampled
 W = 28
