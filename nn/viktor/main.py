@@ -78,9 +78,6 @@ def feedforward():
         EPOCHS
     )
 
-    print("Finished!")
-    print(model)
-
 
 def plot_comparison(img):
     n = min(5,TRAINING_SET_SIZE)

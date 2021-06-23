@@ -7,6 +7,13 @@ import torch.utils.data as tdata
 
 # TODO bluescale images
 
+def normalize(lower, upper, x):
+    magnitude = upper - lower
+    nX = (x - lower) / magnitude
+    return nX
+
+     
+
 class JuliaDataset(tdata.Dataset):
 
     def __init__(self):
@@ -14,6 +21,9 @@ class JuliaDataset(tdata.Dataset):
         self.image_vec_size = 0
         self.x = []
         self.y = []
+
+        self.maxX = self.minX = None
+        self.maxY = self.minY = None 
 
     
     def __len__(self):
@@ -27,6 +37,26 @@ class JuliaDataset(tdata.Dataset):
         if not os.path.exists(path):
             os.mkdir(path)
             self.download_data(path)
+
+        with open(os.path.join(path, "header.txt")) as f:
+            
+            for line in f:
+                args = line.split("=")
+                if len(args) < 2:
+                    continue
+                name = args[0]
+                value = args[1]
+
+                if name == "ITERATIONS":
+                    self.maxX = int(value)
+                    self.minX = 0
+                
+                if name == "XMAX":
+                    temp = float(value)
+                    self.maxY = temp
+                    self.minY = -temp
+                
+
 
         for index in range(num_images):
             with open(os.path.join(path, "data" + str(index) + '.jset'), 'r') as file:
@@ -46,6 +76,10 @@ class JuliaDataset(tdata.Dataset):
 
         self.y = np.array(self.y)
         self.x = np.array(self.x)
+        
+        self.x = normalize(self.minX, self.maxX, self.x)
+        self.y = normalize(self.minY, self.maxY, self.y)
+
         self.num_images = num_images
         self.image_vec_size = self.x.shape[1]
 
