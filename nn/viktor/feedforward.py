@@ -13,6 +13,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         
         self.w = w
+        self.optimizer = None
 
         self.cnn_layers = nn.Sequential(
             # Defining a 2D convolution layer
@@ -33,42 +34,43 @@ class Net(nn.Module):
 
     # Defining the forward pass    
     def forward(self, x):
+        x = x.unsqueeze(dim=1)
         x = self.cnn_layers(x)
         x = x.view(x.size(0), -1)
         x = self.linear_layers(x)
         return x
     
     
-    def train(self, train_x, train_y, val_x, val_y, device, epochs = 20):
-        tr_loss = 0
-        # getting the training set
-        x_train, y_train = Variable(train_x), Variable(train_y)
-        # getting the validation set
-        x_val, y_val = Variable(val_x), Variable(val_y)
-        # converting the data into GPU format
-        if torch.cuda.is_available():
-            x_train = x_train.cuda()
-            y_train = y_train.cuda()
-            x_val = x_val.cuda()
-            y_val = y_val.cuda()
-
-        # clearing the Gradients of the model parameters
+    def batch(self, x, y, loss_func):
+        yhat = self.forward(x)
+        loss = loss_func(yhat, y)
+        loss.backward()
+        self.optimizer.step()
         self.optimizer.zero_grad()
-        
-        # prediction for training and validation set
-        output_train = model(x_train)
-        output_val = model(x_val)
+        return loss.item()
+         
 
-        # computing the training and validation loss
-        loss_train = criterion(output_train, y_train)
-        loss_val = criterion(output_val, y_val)
-        train_losses.append(loss_train)
-        val_losses.append(loss_val)
 
-        # computing the updated weights of all the model parameters
-        loss_train.backward()
-        optimizer.step()
-        tr_loss = loss_train.item()
-        if epoch % 2 == 0:
-            # printing the validation loss
-            print('Epoch : ',epoch+1, '\t', 'loss :', loss_val)
+
+    def train(self, trainLoader, device, loss_func, epochs = 20):
+
+
+        for epoch in range(epochs):
+
+            running_loss = 0.0
+
+            print("Epochs: " + str(epoch + 1) + " out of " + str(epochs))
+
+            for i, data in enumerate(trainLoader, 0):
+
+                x, y = data
+
+                x = x.to(device)
+                y = y.to(device)
+
+                running_loss += self.batch(x, y, loss_func)
+                print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 200))
+                running_loss = 0.0
+
+            
