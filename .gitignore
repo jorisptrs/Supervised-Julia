@@ -23,10 +23,6 @@ __pycache__/
 # PyCharm
 .idea/
 
-# Visual Studio Project 
-*.vcxproj
-*.vcxproj.filters
-
 # Files built by Visual Studio
 *_i.c
 *_p.c
