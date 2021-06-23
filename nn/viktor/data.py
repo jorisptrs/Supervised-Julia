@@ -4,6 +4,8 @@ import zipfile
 import os
 import numpy as np
 import torch.utils.data as tdata
+from multiprocessing import Pool
+import time
 
 # TODO bluescale images
 
@@ -33,7 +35,11 @@ class JuliaDataset(tdata.Dataset):
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
        
-    def load_images(self, path, num_images, compress=True, compressed_width=26):
+    def reader(self, filename):
+        return np.genfromtxt(filename, delimiter=",")
+
+
+    def load_images(self, path, num_images, compress=True, compressed_width=26, pooling = True):
         if not os.path.exists(path):
             os.mkdir(path)
             self.download_data(path)
@@ -56,19 +62,30 @@ class JuliaDataset(tdata.Dataset):
                     self.maxY = temp
                     self.minY = -temp
 
-
         print("Data loading ... ")
-        for index in range(num_images):
-            print(index)
-            tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
-            tempX = self.compress(tempX, compressed_width) if compress else tempX
-            self.x.append(tempX)
-            self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), delimiter=","))
-            
+        start_time = time.time()
 
-        self.y = np.array(self.y, dtype=np.float)
-        self.x = np.array(self.x, dtype=np.float)
-        
+        if pooling:
+            filesx = ["../trainingData/data" + str(index) + '.jset' for index in range(num_images)]
+            filesy = ["../trainingData/data" + str(index) + '.label' for index in range(num_images)]
+
+            pool = Pool(6)
+            xs = pool.map(self.reader, filesx)
+            ys = pool.map(self.reader, filesy)
+            self.y = np.array(xs, dtype=np.float)
+            self.x = np.array(ys, dtype=np.float)
+        else:    
+            for index in range(num_images):
+                print(index)
+                tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
+                tempX = self.compress(tempX, compressed_width) if compress else tempX
+                self.x.append(tempX)
+                self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), delimiter=","))
+            self.y = np.array(self.y, dtype=np.float)
+            self.x = np.array(self.x, dtype=np.float)
+
+        print("--- %s seconds ---" % (time.time() - start_time))
+
         self.x = normalize(self.minX, self.maxX, self.x)
 
         print("Data loaded")

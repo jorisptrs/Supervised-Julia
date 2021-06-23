@@ -75,8 +75,6 @@ class Net(nn.Module):
         loss = loss_func(yhat, y)
         self.optimizer.zero_grad()
         loss.backward()
-        for name, param in self.named_parameters():
-            print(name, param.grad.abs().sum())
         self.optimizer.step()
         return loss.item()
          
