@@ -76,7 +76,7 @@ class Net(nn.Module):
                 x = x.to(device)
                 y = y.to(device)
 
-                running_loss += self.batch(x.float(), y, loss_func)
+                running_loss += self.batch(x.float(), y.float(), loss_func)
             
             self.losses.append(running_loss)
 

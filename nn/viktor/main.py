@@ -10,19 +10,19 @@ import numpy as np
 
 import os
 
-BATCH_SIZE = 30
-TRAINING_SET_SIZE = 30
+BATCH_SIZE = 128
+TRAINING_SET_SIZE = 3000
 
 # Width to which each image will be downsampled
 W = 28
 LATENT_DIMS = 2
-EPOCHS = 100
+EPOCHS = 60
 TEST_SET_PROP = .2
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 juliaDataset = JuliaDataset()
-juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, False, W)
+juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, True, W)
 
 data_loader = torch.utils.data.DataLoader(juliaDataset, batch_size=BATCH_SIZE, shuffle=True)
 
@@ -71,12 +71,7 @@ def feedforward():
         model = model.cuda()
         criterion = criterion.cuda()
 
-    model.train(
-        data_loader,
-        device,
-        criterion,
-        EPOCHS
-    )
+    print(model(torch.from_numpy(juliaDataset.x).float()))
 
 
 def plot_comparison(img):

@@ -59,14 +59,14 @@ class JuliaDataset(tdata.Dataset):
 
         print("Data loading ... ")
         for index in range(num_images):
-            tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), dtype=np.float, delimiter=",")
+            tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
             tempX = self.compress(tempX, compressed_width) if compress else tempX
             self.x.append(tempX)
-            self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), dtype=np.float, delimiter=","))
+            self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), delimiter=","))
             
 
-        self.y = np.array(self.y)
-        self.x = np.array(self.x)
+        self.y = np.array(self.y, dtype=np.float)
+        self.x = np.array(self.x, dtype=np.float)
         
         self.x = normalize(self.minX, self.maxX, self.x)
 
