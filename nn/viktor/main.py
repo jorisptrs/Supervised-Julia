@@ -36,7 +36,7 @@ def feedforward():
     # based on https://www.analyticsvidhya.com/blog/2019/10/building-image-classification-models-cnn-pytorch/
     model = Net(W)
     # defining the optimizer
-    model.optimizer = Adam(model.parameters(), lr=0.07)
+    model.optimizer = Adam(model.parameters(), lr=0.005)
     # defining the loss function
     criterion = nn.MSELoss()
     # checking if GPU is available

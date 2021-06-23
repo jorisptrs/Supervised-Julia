@@ -73,11 +73,11 @@ class Net(nn.Module):
     def batch(self, x, y, loss_func):
         yhat = self.forward(x)
         loss = loss_func(yhat, y)
+        self.optimizer.zero_grad()
         loss.backward()
         for name, param in self.named_parameters():
             print(name, param.grad.abs().sum())
         self.optimizer.step()
-        self.optimizer.zero_grad()
         return loss.item()
          
     def graph_loss(self):
