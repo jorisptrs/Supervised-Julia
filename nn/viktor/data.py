@@ -25,20 +25,12 @@ class JuliaDataset(tdata.Dataset):
         self.y = []
 
         self.maxX = self.minX = None
-
-    
-    def __len__(self):
-        return len(self.num_images)
-
-
-    def __getitem__(self, idx):
-        return self.x[idx], self.y[idx]
        
     def reader(self, filename):
         return np.genfromtxt(filename, delimiter=",")
 
 
-    def load_images(self, path, num_images, compress=True, compressed_width=26, pooling = True):
+    def load_images(self, path, num_images, compress=True, compressed_width=26, pooling = False):
         if not os.path.exists(path):
             os.mkdir(path)
             self.download_data(path)
@@ -94,14 +86,20 @@ class JuliaDataset(tdata.Dataset):
         self.num_images = num_images
         self.image_vec_size = self.x.shape[1]
 
-    def download_data(self, path, google_drive_id='1a-24ZjCuuvV-QnRcxuQPl_NKiqin-sXz', print_status=True):      
-        if print_status:
-            print("Retrieving data from google drive...")  
-
+    def download_data(self, path, google_drive_id='13jpZFAuGekt3qZoikFs5VaD-0XUO8zdc', print_status=True):      
         URL = "https://docs.google.com/uc?export=download"
         chunk_size = 32768
-        response = requests.Session().get(URL, params={'id': google_drive_id}, stream=True)
+        session = requests.Session()
         data_path = os.path.join(path, "data")
+
+        if print_status:
+            print("Retrieving data from google drive...")  
+        response = session.get(URL, params={'id': google_drive_id}, stream=True)
+
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                response = session.get(URL, params={'id': google_drive_id, 'confirm': value}, stream=True)
+                break
              
         with open(data_path, "wb") as f:
             for chunk in response.iter_content(chunk_size):

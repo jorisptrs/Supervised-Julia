@@ -11,7 +11,7 @@ import numpy as np
 import os
 
 BATCH_SIZE = 32
-TRAINING_SET_SIZE = 500
+TRAINING_SET_SIZE = 10
 
 
 # Width to which each image will be downsampled
@@ -46,33 +46,6 @@ def feedforward():
     )
 
     model.validation(validation_loader, device, criterion, True)
-
-
-def plot_comparison(img):
-    n = min(5,TRAINING_SET_SIZE)
-    f, ax = plt.subplots(n,2)
-    for i in range(n):
-        # Plot training example
-        ax[i,0].imshow(juliaDataset.x[i].reshape(W, W), cmap='gray', vmin=0, vmax=1)
-        # Plot reconstructed training example
-        ax[i,1].imshow(img[i].reshape(W, W), cmap='gray', vmin=0, vmax=1)
-
-def plot_reconstructed(autoencoder, img):
-    r0=(-5, 10)
-    r1=(-10, 5)
-    n=12
-    plt.figure()
-    img = np.zeros((n*W, n*W))
-    if LATENT_DIMS != 2:
-        print("Please implement plot_reconstructed() for more than 2 latent dims")
-        return
-    for i, y in enumerate(np.linspace(*r1, n)):
-        for j, x in enumerate(np.linspace(*r0, n)):
-            z = torch.Tensor([[x, y]]).to(device)
-            x_hat = autoencoder.decoder(z)
-            x_hat = x_hat.reshape(W, W).to('cpu').detach().numpy()
-            img[(n-1-i)*W:(n-1-i+1)*W, j*W:(j+1)*W] = x_hat # UGLY :-()---<===D
-    plt.imshow(img, extent=[*r0, *r1])
 
 
 if __name__ == "__main__":
