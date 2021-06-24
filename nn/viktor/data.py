@@ -25,7 +25,6 @@ class JuliaDataset(tdata.Dataset):
         self.y = []
 
         self.maxX = self.minX = None
-        self.maxY = self.minY = None 
 
     
     def __len__(self):
@@ -72,8 +71,8 @@ class JuliaDataset(tdata.Dataset):
             pool = Pool(6)
             xs = pool.map(self.reader, filesx)
             ys = pool.map(self.reader, filesy)
-            self.y = np.array(xs, dtype=np.float)
-            self.x = np.array(ys, dtype=np.float)
+            self.x = np.array(xs, dtype=np.float)
+            self.y = np.array(ys, dtype=np.float)
         else:    
             for index in range(num_images):
                 print(index)

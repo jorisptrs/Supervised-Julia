@@ -33,7 +33,7 @@ class Net(nn.Module):
         )
 
         self.linear_layers = nn.Sequential(
-            nn.Linear(4 * 7 * 7, 2)
+            nn.Linear(67600, 2)
         )
 
     def validation(self, validationLoader, device, loss_func, output=False):
