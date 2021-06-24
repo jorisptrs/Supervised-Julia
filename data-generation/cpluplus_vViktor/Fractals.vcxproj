@@ -139,11 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="Fractals.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Bitmap.h" />
     <ClInclude Include="Julia.h" />
     <ClInclude Include="Sampler.h" />
   </ItemGroup>

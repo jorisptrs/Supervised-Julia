@@ -18,14 +18,8 @@
     <ClCompile Include="Fractals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bitmap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Bitmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Julia.h">
       <Filter>Header Files</Filter>
     </ClInclude>

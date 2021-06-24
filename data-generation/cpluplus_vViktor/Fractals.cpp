@@ -12,18 +12,17 @@
 #include "Julia.h"
 #include "Sampler.h"
 
-const int BMP_SIZE = 521;
-const int ITERATIONS = 512;
-const long double xmin = -2, xmax = 2;
-const long double ymin = -2, ymax = 2;
+const int BMP_WIDTH = 128;
+const int BMP_HEIGHT = 64;
+const int ITERATIONS = 256;
+const long double xmin = -1.5, xmax = 1.5;
+const long double ymin = 0, ymax = 1.5;
 const double ESCAPE_THRESHOLD = 3.0;
-
-const bool INTERACTIVE = false;
 
 /*
 * Data generation
 */
-const int nData = 3000;
+const int nData = 60000;
 const std::string type = "RANDOM";
 /*
 * REPRESENTATIVE data generation
@@ -51,7 +50,7 @@ void interactive() {
         c.imag(cImg);
         c.real(cReal);
         auto start = std::chrono::system_clock::now();
-        julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
+        julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         j.draw(c);
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
@@ -70,7 +69,7 @@ void generateData() {
     }
     int i = 0;
 
-    std::string header = "PICTURE_SIZE=" + std::to_string(BMP_SIZE) + "\n"
+    std::string header = "PICTURE_SIZE=" + std::to_string(BMP_WIDTH) + "," + std::to_string(BMP_HEIGHT) + "\n"
         + "N_DATA=" + std::to_string(nData) + "\n"
         + "SAMPLING_TYPE=" + type + "\n"
         + "ITERATIONS=" + std::to_string(ITERATIONS) + "\n"
@@ -100,27 +99,25 @@ void generateData() {
         labelFile << label;
         labelFile.close();
 
-        julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
+        julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         std::string data;
 
-        data = j.draw(c, false);
+        data = j.draw(c);
 
         std::ofstream dataFile("./trainingData/data" +  std::to_string(i) + ".jset");
         dataFile << data;
         dataFile.close();
         i++;
-        printf("%d / %d\n", i, nData);
+        if (i % 1000 == 999) {
+            printf("%d / %d\n", i, nData);
+        }
     }
 
     delete sampler;
 }
 
 int main(int argc, char* argv[]) {
-    if (INTERACTIVE) {
-        interactive();
-    }
-    else {
-        generateData();
-    }
+
+    generateData();
     return 0;
 }
