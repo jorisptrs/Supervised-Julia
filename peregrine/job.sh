@@ -3,14 +3,33 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=2G
-#SBATCH --job-name=Neural Network Training
+#SBATCH --job-name=Neural Network Fractal Training
 
+generate_data=false
+train_neural_network=true
+
+cd ../
 module purge
-module load Python/3.6.4-foss-2018a
-module load matplotlib/2.1.2-foss-2018a-Python-3.6.4
 
-echo Overview of modules that are loaded
-module list
+if $generate_data
+then 
+    module load foss/2018a
+    cd data-generation/cpluplus_vViktor
+    rm -r trainingData
+    mkdir trainingData
+    echo Starting Fractal Generation
+    make run clean
+    mv trainingData ../../nn/
+    cd ../../
+fi
 
-echo Starting Python program
-python script.py /data_dir
+if $train_neural_network
+then
+    module load Python/3.6.4-foss-2018a
+    module load matplotlib/2.1.2-foss-2018a-Python-3.6.4
+    # add Cuda and pytorch modules
+    cd nn/viktor
+    echo Starting Neural Network Training
+    python3 main.py # change to python
+    cd ../../
+fi
