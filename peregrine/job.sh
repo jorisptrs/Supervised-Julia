@@ -13,7 +13,7 @@ module purge
 
 if $generate_data
 then 
-    module load foss/2018a
+    module load GCC/10.3.0
     cd data-generation/cpluplus_vViktor
     rm -r trainingData
     mkdir trainingData
@@ -25,9 +25,10 @@ fi
 
 if $train_neural_network
 then
-    module load Python/3.6.4-foss-2018a
-    module load matplotlib/2.1.2-foss-2018a-Python-3.6.4
-    # add Cuda and pytorch modules
+    module load Python/3.9.5-GCCcore-10.3.0
+    module load matplotlib/3.2.1-foss-2020a-Python-3.8.2 
+    module load PyTorch/1.6.0-fosscuda-2019b-Python-3.7.4
+    module load CUDA/11.1.1-GCC-10.2.0
     cd nn/viktor
     echo Starting Neural Network Training
     python3 main.py # change to python
