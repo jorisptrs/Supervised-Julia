@@ -1,15 +1,14 @@
+
+# Pregrine Modules
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 import matplotlib.pyplot as plt
 
-# TODO lienar dimensions aoutomatic
 
-class Net(nn.Module):
+class CNN(nn.Module):
 
     def __init__(self, w):
-        super(Net, self).__init__()
+        super(CNN, self).__init__()
         
         self.w = w
         self.optimizer = None
@@ -20,12 +19,13 @@ class Net(nn.Module):
         self.float()
 
         self.cnn_layers = nn.Sequential(
-            # Defining a 2D convolution layer
+
             nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            # Defining another 2D convolution layer
+
+            # 2nd convolution layer
             nn.Conv2d(4, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),
@@ -33,7 +33,7 @@ class Net(nn.Module):
         )
 
         self.linear_layers = nn.Sequential(
-            nn.Linear(67600, 2)
+            nn.Linear(2048, 2)
         )
 
     def validation(self, validationLoader, device, loss_func, output=False):

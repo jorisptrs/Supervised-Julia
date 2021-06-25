@@ -23,6 +23,9 @@ __pycache__/
 # PyCharm
 .idea/
 
+# g++
+a.out
+
 # Files built by Visual Studio
 *_i.c
 *_p.c
