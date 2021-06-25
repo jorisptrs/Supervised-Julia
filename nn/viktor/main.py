@@ -10,7 +10,7 @@ from feedforward import CNN
 import save
 
 
-DATASET_SIZE = 2000
+DATASET_SIZE = 50
 BATCH_SIZE = 128
 TEST_SET_PROP = 0.7
 

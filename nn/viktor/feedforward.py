@@ -60,7 +60,7 @@ class CNN(nn.Module):
                 running_loss += self.batch(x, y, loss_func)
     
             self.losses.append(running_loss / len(trainLoader))
-            #self.valLosses.append(self.validation(validationLoader, loss_func, device))
+            self.valLosses.append(self.validation(validationLoader, loss_func, device))
 
     def validation(self, validationLoader, loss_func, device, output=False):
         self.y_compare = []
@@ -78,7 +78,7 @@ class CNN(nn.Module):
                 for i, y_pred in enumerate(yhat):
                     y_true = y[i]
                     self.y_compare.append((y_true.tolist(), y_pred.tolist()))
-                    
+
                     print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
                     " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             

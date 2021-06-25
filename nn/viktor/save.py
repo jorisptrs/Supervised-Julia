@@ -22,14 +22,14 @@ def save_predictions(pred_arr):
     output.to_csv('predictions.csv')
 
 def save_loss(loss_arr, val_arr):
-    output = pd.DataFrame(list(zip(loss_arr)))
-    output.columns = ['loss']
-    output.to_csv('loss.dat')
+    output = pd.DataFrame(list(zip(loss_arr, val_arr)))
+    output.columns = ['loss', 'val_loss']
+    output.to_csv('loss.csv')
 
 def graph_loss(loss_arr, valLosses):
     plt.title("Training loss")
     plt.plot(loss_arr, label="train")
-    #plt.plot(valLosses, label="validation")
+    plt.plot(valLosses, label="validation")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
