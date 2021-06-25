@@ -6,6 +6,7 @@ trainingData/
 # Output Data
 *.jmodel
 *.dat
+*.csv
 
 # Testing MNIST Data
 **/*MNIST/
@@ -19,6 +20,7 @@ __pycache__/
 
 # Images
 *.bmp
+*.png
 
 # VS Code
 .vscode/
@@ -28,6 +30,10 @@ __pycache__/
 
 # g++
 a.out
+
+# R
+.RData
+.Rhistory
 
 # Files built by Visual Studio
 *_i.c

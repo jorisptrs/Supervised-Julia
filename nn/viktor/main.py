@@ -10,11 +10,11 @@ from feedforward import CNN
 import save
 
 
-DATASET_SIZE = 10
-BATCH_SIZE = 32
-TEST_SET_PROP = 0.8
+DATASET_SIZE = 2000
+BATCH_SIZE = 128
+TEST_SET_PROP = 0.7
 
-EPOCHS = 15
+EPOCHS = 10
 LEARNING_RATE = 0.005
 
 CORES = multiprocessing.cpu_count()
@@ -54,11 +54,12 @@ def feedforward():
         loss_func = loss_func.cuda()
 
     model.train(data_loader, validation_loader, loss_func, DEVICE, EPOCHS)
-    model.validation(validation_loader, DEVICE, loss_func, True)
+    model.validation(validation_loader, loss_func, DEVICE, output=True)
 
     save.model_save(model, MODEL_NAME)
     save.graph_loss(model.losses, model.valLosses)
     save.save_loss(model.losses, model.valLosses)
+    save.save_predictions(model.y_compare)
 
 if __name__ == "__main__":
     feedforward()

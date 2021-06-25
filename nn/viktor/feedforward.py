@@ -60,28 +60,26 @@ class CNN(nn.Module):
                 running_loss += self.batch(x, y, loss_func)
     
             self.losses.append(running_loss / len(trainLoader))
-            self.valLosses.append(self.validation(validationLoader, device, loss_func))
+            #self.valLosses.append(self.validation(validationLoader, loss_func, device))
 
-    def validation(self, validationLoader, device, loss_func, output=False):
-        # This function is weird
+    def validation(self, validationLoader, loss_func, device, output=False):
+        self.y_compare = []
         loss = 0.0
-        # TODO this should not be a forcycle
-        yhat = None
-        y = None
-        x = None
-        for x,y in validationLoader:
-            x = x.to(device)
-            y = y.to(device)
+     
+        for (x, y) in validationLoader:
+            x = x.to(device).float()
+            y = y.to(device).float()
 
-            yhat = self.forward(x.float())
+            yhat = self.forward(x)
             loss += loss_func(yhat, y)
-        
-        if output:
-            torch.set_printoptions(edgeitems=14)
-            for i, pred in enumerate(yhat):
-                yreal = y[i]
-                #print(x[i])
-                print("y^=" + str(pred[0].item()) + "," + str(pred[1].item()) + 
-                " y=" + str(yreal[0].item()) + "," + str(yreal[1].item()))
+
+            if output:
+     
+                for i, y_pred in enumerate(yhat):
+                    y_true = y[i]
+                    self.y_compare.append((y_true.tolist(), y_pred.tolist()))
+                    
+                    print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
+                    " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
         return loss.item()
