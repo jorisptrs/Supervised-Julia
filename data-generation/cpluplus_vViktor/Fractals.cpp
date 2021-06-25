@@ -8,6 +8,7 @@
 #include <string>
 #include <math.h>
 #include <fstream>
+#include <vector>
 
 #include "Julia.h"
 #include "Sampler.h"
@@ -61,6 +62,8 @@ void interactive() {
 
 void generateData() {
     Sampler* sampler = nullptr;
+    std::vector<std::vector<double>> labels(nData, std::vector<double>(2, 0));
+
     if (type == "REPRESENTATIVE") {
         sampler = new Sampler(nData, rStep, minDistanceOnCircle, noiseMagnitude);
     }
@@ -68,6 +71,7 @@ void generateData() {
         sampler = new Sampler(nData, sampleRadius);
     }
     int i = 0;
+
 
     std::string header = "PICTURE_SIZE=" + std::to_string(BMP_WIDTH) + "," + std::to_string(BMP_HEIGHT) + "\n"
         + "N_DATA=" + std::to_string(nData) + "\n"
@@ -91,13 +95,9 @@ void generateData() {
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
-        std::string label = std::to_string(c.real())
-            + ","
-            + std::to_string(c.imag());
 
-        std::ofstream labelFile("./trainingData/data" + std::to_string(i) + ".label");
-        labelFile << label;
-        labelFile.close();
+        labels[i][0] = c.real();
+        labels[i][1] = c.imag();
 
         julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         std::string data;
@@ -111,6 +111,11 @@ void generateData() {
         if (i % 1000 == 999) {
             printf("%d / %d\n", i, nData);
         }
+    }
+
+    std::ofstream labelsFile("./trainingData/labels.txt");
+    for (const auto& label : labels) {
+        labelsFile << std::to_string(label[0])  << "," << std::to_string(label[1]) << "\n";
     }
 
     delete sampler;

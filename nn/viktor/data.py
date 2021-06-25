@@ -10,6 +10,11 @@ import time
 from multiprocessing import Pool
 
 
+def normalize(lower, upper, x):
+    magnitude = upper - lower
+    nX = (x - lower) / magnitude
+    return nX
+
 class JuliaDataset(tdata.Dataset):
 
     def __init__(self):
@@ -62,26 +67,25 @@ class JuliaDataset(tdata.Dataset):
 
         if pooling:
             filesx = ["../trainingData/data" + str(index) + '.jset' for index in range(num_images)]
-            filesy = ["../trainingData/data" + str(index) + '.label' for index in range(num_images)]
-
-            pool = Pool(6)
+           
+            pool = Pool(4)
             xs = pool.map(self.reader, filesx)
-            ys = pool.map(self.reader, filesy)
             self.x = np.array(xs, dtype=np.float)
-            self.y = np.array(ys, dtype=np.float)
         else:    
             for index in range(num_images):
                 print(index)
                 tempX = np.genfromtxt(os.path.join(path, "data" + str(index) + '.jset'), delimiter=",")
                 tempX = self.compress(tempX, compressed_width) if compress else tempX
                 self.x.append(tempX)
-                self.y.append(np.genfromtxt(os.path.join(path, "data" + str(index) + '.label'), delimiter=","))
             self.y = np.array(self.y, dtype=np.float)
             self.x = np.array(self.x, dtype=np.float)
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
-        self.x = self.normalize(self.minX, self.maxX, self.x)
+        self.x = normalize(self.minX, self.maxX, self.x)
+        self.y = np.genfromtxt(os.path.join(path, "labels.txt"), delimiter=",")
+        self.y = self.y[:num_images]
+
 
         print("Data loaded")
         print(self.x.shape)
