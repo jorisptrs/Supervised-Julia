@@ -73,7 +73,8 @@ void generateData() {
     int i = 0;
 
 
-    std::string header = "PICTURE_SIZE=" + std::to_string(BMP_WIDTH) + "," + std::to_string(BMP_HEIGHT) + "\n"
+    std::string header = "IMAGE_WIDTH=" + std::to_string(BMP_WIDTH) + "\n" 
+        + "IMAGE_HEIGHT=" + std::to_string(BMP_HEIGHT) + "\n"
         + "N_DATA=" + std::to_string(nData) + "\n"
         + "SAMPLING_TYPE=" + type + "\n"
         + "ITERATIONS=" + std::to_string(ITERATIONS) + "\n"
@@ -82,11 +83,9 @@ void generateData() {
         + "YMIN=" + std::to_string(ymin) + "\n"
         + "YMAX=" + std::to_string(ymax) + "\n"
         + "ESCAPE_THRESHOLD=" + std::to_string(ESCAPE_THRESHOLD) + "\n"
-        + "[REPRESENTATIVE]\n"
         + "RSTEP=" + std::to_string(rStep) + "\n"
         + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n"
         + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n"
-        + "[RANDOM]\n"
         + "SAMPLE_RADIUS=" + std::to_string(sampleRadius) + "\n";
 
     std::ofstream headerFile("./trainingData/header.txt");

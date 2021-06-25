@@ -33,8 +33,7 @@ class JuliaDataset(tdata.Dataset):
         with open(os.path.join(path, header_name)) as f:
             for line in f.readlines():
                 line = line.strip().split("=")
-                if len(line) == 2:
-                    self.meta_data[line[0]] = line[1]
+                self.meta_data[line[0]] = line[1]
                         
             self.maxX = int(self.meta_data["ITERATIONS"])
             self.maxY = float(self.meta_data["SAMPLE_RADIUS"])
@@ -59,7 +58,7 @@ class JuliaDataset(tdata.Dataset):
         self.read_header(path)
 
         if self.debug:
-            print("Starting data loading...")
+            print("Loading data into RAM...")
             start_time = time.time()
 
         for index in range(num_images):
