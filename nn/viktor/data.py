@@ -6,12 +6,13 @@ import requests
 import zipfile
 import os
 import time
-from multiprocessing import Pool
+import multiprocessing
 
 
 class JuliaDataset(tdata.Dataset):
 
-    def __init__(self, debug=True):
+    def __init__(self, num_cores, debug=True):
+        self.num_cores = num_cores
         self.debug = debug
         self.num_images = 0
         self.meta_data = dict()
@@ -65,7 +66,7 @@ class JuliaDataset(tdata.Dataset):
             file_names.append(os.path.join(path, "data" + str(index) + '.jset'))
 
         if pooling:
-            pool = Pool(4)
+            pool = multiprocessing.Pool(self.num_cores)
             self.x = pool.map(self.reader, file_names)
         else:    
             for index in range(num_images):

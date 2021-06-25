@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.optim import Adam, SGD
 
 import os
+import multiprocessing
 from data import JuliaDataset
 from feedforward import CNN
 import save
@@ -16,13 +17,14 @@ TEST_SET_PROP = 0.8
 EPOCHS = 15
 LEARNING_RATE = 0.005
 
+CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 DATASET_PATH = os.path.join('..','trainingData')
 
 
 def load_data():
-    juliaDataset = JuliaDataset()
+    juliaDataset = JuliaDataset(CORES)
     juliaDataset.load_images(DATASET_PATH, DATASET_SIZE)
 
     # Split Data
@@ -30,8 +32,8 @@ def load_data():
     validation_size = DATASET_SIZE - training_size
     training_set, validation_set = torch.utils.data.random_split(juliaDataset, [training_size, validation_size])
 
-    data_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE)
-    validation_loader = torch.utils.data.DataLoader(validation_set, shuffle=False, batch_size=len(validation_set))
+    data_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE, num_workers=CORES)
+    validation_loader = torch.utils.data.DataLoader(validation_set, shuffle=False, batch_size=len(validation_set), num_workers=CORES)
 
     return (data_loader, validation_loader)
 
