@@ -1,5 +1,5 @@
 
-# Pregrine Modules
+# Peregrine Modules
 import numpy as np
 import torch.utils.data as tdata
 

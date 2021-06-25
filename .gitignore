@@ -3,6 +3,7 @@ trainingData/
 
 # Default Model Output
 *model
+*cnn_fractal_model_v1
 
 # Testing MNIST Data
 **/*MNIST/
