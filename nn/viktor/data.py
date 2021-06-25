@@ -1,34 +1,38 @@
 
+# Pregrine Modules
+import numpy as np
+import torch.utils.data as tdata
+
 import requests
 import zipfile
 import os
-import numpy as np
-import torch.utils.data as tdata
-from multiprocessing import Pool
 import time
+from multiprocessing import Pool
 
-# TODO bluescale images
-
-def normalize(lower, upper, x):
-    magnitude = upper - lower
-    nX = (x - lower) / magnitude
-    return nX
-
-     
 
 class JuliaDataset(tdata.Dataset):
 
     def __init__(self):
         self.num_images = 0
-        self.image_vec_size = 0
         self.x = []
         self.y = []
 
-        self.maxX = self.minX = None
+        self.maxX = self.minX = None 
+
+    def __len__(self):
+        """
+        Required to be implemented by torch Dataset
+        """
+        return self.num_images
+    
+    def __getitem__(self, idx):
+        """
+        Required to be implemented by torch Dataset
+        """
+        return (self.x[idx], self.y[idx])
        
     def reader(self, filename):
         return np.genfromtxt(filename, delimiter=",")
-
 
     def load_images(self, path, num_images, compress=True, compressed_width=26, pooling = False):
         if not os.path.exists(path):
@@ -77,14 +81,13 @@ class JuliaDataset(tdata.Dataset):
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
-        self.x = normalize(self.minX, self.maxX, self.x)
+        self.x = self.normalize(self.minX, self.maxX, self.x)
 
         print("Data loaded")
         print(self.x.shape)
         print(self.y.shape)
 
         self.num_images = num_images
-        self.image_vec_size = self.x.shape[1]
 
     def download_data(self, path, google_drive_id='13jpZFAuGekt3qZoikFs5VaD-0XUO8zdc', print_status=True):      
         URL = "https://docs.google.com/uc?export=download"
@@ -117,17 +120,14 @@ class JuliaDataset(tdata.Dataset):
             if print_status:
                 print("Zipping Failed.")
 
+    def normalize(self, lower, upper, x):
+        magnitude = upper - lower
+        nX = (x - lower) / magnitude
+        return nX
+
     def compress(self, img, compressed_width):
         n = (int) (img.shape[0] / compressed_width)
         for i in range(compressed_width):
             for j in range(compressed_width):
                 img[i, j] = np.mean(img[i*n:(i+1)*n, j*n:(j+1)*n])
         return img[:compressed_width,:compressed_width] 
-
-    # Functions required to be implemented by torch Dataset object    
-
-    def __len__(self):
-        return self.num_images
-    
-    def __getitem__(self, idx):
-        return (self.x[idx], self.y[idx])

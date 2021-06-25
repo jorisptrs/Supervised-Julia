@@ -22,7 +22,7 @@ const double ESCAPE_THRESHOLD = 3.0;
 /*
 * Data generation
 */
-const int nData = 60000;
+const int nData = 2000;
 const std::string type = "RANDOM";
 /*
 * REPRESENTATIVE data generation
