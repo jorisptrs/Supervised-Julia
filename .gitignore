@@ -1,9 +1,11 @@
 # Our Training Data
 trainingData/
+*.rar
+*.zip
 
-# Default Model Output
-*model
-*cnn_fractal_model_v1
+# Output Data
+*.jmodel
+*.dat
 
 # Testing MNIST Data
 **/*MNIST/

@@ -29,6 +29,7 @@ then
     module load matplotlib/3.2.1-foss-2020a-Python-3.8.2 
     module load PyTorch/1.6.0-fosscuda-2019b-Python-3.7.4
     module load CUDA/11.1.1-GCC-10.2.0
+    #numpy
     cd nn/viktor
     echo Starting Neural Network Training
     python3 main.py # change to python

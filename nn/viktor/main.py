@@ -1,5 +1,4 @@
 
-# Peregrine Modules
 import torch
 import torch.nn as nn
 from torch.optim import Adam, SGD
@@ -7,26 +6,42 @@ from torch.optim import Adam, SGD
 import os
 from data import JuliaDataset
 from feedforward import CNN
+import save
 
 
+DATASET_SIZE = 10
 BATCH_SIZE = 32
-TRAINING_SET_SIZE = 10
-W = 64 # Scale width
-LATENT_DIMS = 2
+TEST_SET_PROP = 0.8
+
 EPOCHS = 15
-TEST_SET_PROP = .8
-POOLING = True
 LEARNING_RATE = 0.005
+
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-MODEL_NAME = "cnn_fractal_model_v1"
+MODEL_NAME = "cnn_fractal_model_v1.jmodel"
+DATASET_PATH = os.path.join('..','trainingData')
 
 
-def feedforward(data_loader, validation_loader):
+def load_data():
+    juliaDataset = JuliaDataset()
+    juliaDataset.load_images(DATASET_PATH, DATASET_SIZE)
+
+    # Split Data
+    training_size = int(DATASET_SIZE * TEST_SET_PROP)
+    validation_size = DATASET_SIZE - training_size
+    training_set, validation_set = torch.utils.data.random_split(juliaDataset, [training_size, validation_size])
+
+    data_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE)
+    validation_loader = torch.utils.data.DataLoader(validation_set, shuffle=False, batch_size=len(validation_set))
+
+    return (data_loader, validation_loader)
+
+def feedforward():
     """
     Train a simple feed-forward NN to predict constants
     based on https://www.analyticsvidhya.com/blog/2019/10/building-image-classification-models-cnn-pytorch/
-    """    
-    model = CNN(W)
+    """
+    (data_loader, validation_loader) = load_data()    
+    model = CNN()
 
     model.optimizer = Adam(model.parameters(), lr=LEARNING_RATE) # also try SGD
     loss_func = nn.MSELoss()
@@ -36,24 +51,12 @@ def feedforward(data_loader, validation_loader):
         model = model.cuda()
         loss_func = loss_func.cuda()
 
-    model.train(data_loader, validation_loader, DEVICE, loss_func, EPOCHS)
+    model.train(data_loader, validation_loader, loss_func, DEVICE, EPOCHS)
     model.validation(validation_loader, DEVICE, loss_func, True)
-    model.save(MODEL_NAME)
 
-def load_data():
-    juliaDataset = JuliaDataset()
-    juliaDataset.load_images(os.path.join('..','trainingData'), TRAINING_SET_SIZE, True, 26, pooling=POOLING)
-
-    train_n = int(TRAINING_SET_SIZE * TEST_SET_PROP)
-    valid_n = TRAINING_SET_SIZE - train_n
-    train, validation = torch.utils.data.random_split(juliaDataset, [train_n, valid_n])
-
-    data_loader = torch.utils.data.DataLoader(train, batch_size=BATCH_SIZE, shuffle=True)
-    validation_loader = torch.utils.data.DataLoader(validation, shuffle=False, batch_size=len(validation))
-
-    return (data_loader, validation_loader)
-
+    save.model_save(model, MODEL_NAME)
+    save.graph_loss(model.losses, model.valLosses)
+    save.save_loss(model.losses, model.valLosses)
 
 if __name__ == "__main__":
-    (data_loader, validation_loader) = load_data()
-    feedforward(data_loader, validation_loader)
+    feedforward()
