@@ -10,11 +10,6 @@ import time
 from multiprocessing import Pool
 
 
-def normalize(lower, upper, x):
-    magnitude = upper - lower
-    nX = (x - lower) / magnitude
-    return nX
-
 class JuliaDataset(tdata.Dataset):
 
     def __init__(self):
@@ -82,7 +77,7 @@ class JuliaDataset(tdata.Dataset):
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
-        self.x = normalize(self.minX, self.maxX, self.x)
+        self.x = self.normalize(self.minX, self.maxX, self.x)
         self.y = np.genfromtxt(os.path.join(path, "labels.txt"), delimiter=",")
         self.y = self.y[:num_images]
 

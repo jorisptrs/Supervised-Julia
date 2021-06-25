@@ -18,6 +18,7 @@ TEST_SET_PROP = .8
 POOLING = True
 LEARNING_RATE = 0.005
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+MODEL_NAME = "cnn_fractal_model_v1"
 
 
 def feedforward(data_loader, validation_loader):
@@ -37,6 +38,7 @@ def feedforward(data_loader, validation_loader):
 
     model.train(data_loader, validation_loader, DEVICE, loss_func, EPOCHS)
     model.validation(validation_loader, DEVICE, loss_func, True)
+    model.save(MODEL_NAME)
 
 def load_data():
     juliaDataset = JuliaDataset()
