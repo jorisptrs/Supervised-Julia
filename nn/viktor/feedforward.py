@@ -19,7 +19,7 @@ class CNN(nn.Module):
             # 2nd convolution layer
             nn.Conv2d(4, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
-            nn.ReLU(inplace=True),
+            nn.Tanh(),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
