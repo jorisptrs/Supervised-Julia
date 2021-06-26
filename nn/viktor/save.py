@@ -19,12 +19,12 @@ def save_predictions(pred_arr):
 
     output = pd.DataFrame(list(zip(y_true_real, y_true_img, y_pred_real, y_pred_img)))
     output.columns = ['y_true_real', 'y_true_img', 'y_pred_real', 'y_pred_img']
-    output.to_csv('predictions.csv')
+    output.to_csv('predictions.csv', index=False)
 
 def save_loss(loss_arr, val_arr):
     output = pd.DataFrame(list(zip(loss_arr, val_arr)))
     output.columns = ['loss', 'val_loss']
-    output.to_csv('loss.csv')
+    output.to_csv('loss.csv', index=False)
 
 def graph_loss(loss_arr, valLosses):
     plt.title("Training loss")
