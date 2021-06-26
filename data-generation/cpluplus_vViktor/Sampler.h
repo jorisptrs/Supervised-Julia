@@ -83,7 +83,8 @@ private:
 		double alpha, r;
 
 		alpha = randNum(2 * M_PI);
-		r = randNum(0.000001, rStep);
+		u = randNum(rStep) + randNum(rStep);
+		r = u > rStep ? (2 * rStep) - u : u;
 		
 		real = cos(alpha) * r;
 		imag = sin(alpha) * r;
