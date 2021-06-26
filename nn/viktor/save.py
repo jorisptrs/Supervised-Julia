@@ -26,10 +26,10 @@ def save_loss(loss_arr, val_arr):
     output.columns = ['loss', 'val_loss']
     output.to_csv('loss.csv', index=False)
 
-def graph_loss(loss_arr, valLosses):
+def graph_loss(loss_arr, val_losses):
     plt.title("Training loss")
     plt.plot(loss_arr, label="train")
-    plt.plot(valLosses, label="validation")
+    plt.plot(val_losses, label="validation")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()

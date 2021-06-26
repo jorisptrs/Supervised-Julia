@@ -10,7 +10,7 @@ from feedforward import CNN
 import save
 
 
-DATASET_SIZE = 100
+DATASET_SIZE = 2000
 BATCH_SIZE = 128
 TEST_SET_PROP = 0.7
 
@@ -25,6 +25,9 @@ DATASET_PATH = os.path.join('..','trainingData')
 
 
 def load_data():
+    """
+    Returns the loaded dataset, split into training- and validation sets.
+    """
     juliaDataset = JuliaDataset(CORES)
     juliaDataset.load_images(DATASET_PATH, DATASET_SIZE)
 
@@ -33,29 +36,29 @@ def load_data():
     validation_size = DATASET_SIZE - training_size
     training_set, validation_set = torch.utils.data.random_split(juliaDataset, [training_size, validation_size])
 
-    data_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE, num_workers=CORES)
+    training_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE, num_workers=CORES)
     validation_loader = torch.utils.data.DataLoader(validation_set, shuffle=False, batch_size=len(validation_set), num_workers=CORES)
 
-    return (data_loader, validation_loader)
+    return (training_loader, validation_loader)
 
 def feedforward():
     """
-    Train a simple feed-forward NN to predict constants
-    based on https://www.analyticsvidhya.com/blog/2019/10/building-image-classification-models-cnn-pytorch/
+    Train a CNN to predict constants
     """
-    (data_loader, validation_loader) = load_data()    
+    (training_loader, validation_loader) = load_data()    
     model = CNN()
     model.to(DEVICE)
 
-    optimizer = Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=L2_NORM_REG_PENALTY) # also try SGD
+    # TODO also try SGD
+    optimizer = Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=L2_NORM_REG_PENALTY)
     loss_func = nn.MSELoss().to(DEVICE)
 
-    model.train(data_loader, validation_loader, optimizer, loss_func, DEVICE, EPOCHS)
+    model.train(training_loader, validation_loader, optimizer, loss_func, DEVICE, EPOCHS)
     model.validation(validation_loader, loss_func, DEVICE, output=True)
 
     save.model_save(model, MODEL_NAME)
-    save.graph_loss(model.losses, model.valLosses)
-    save.save_loss(model.losses, model.valLosses)
+    save.graph_loss(model.losses, model.val_losses)
+    save.save_loss(model.losses, model.val_losses)
     save.save_predictions(model.y_compare)
 
 if __name__ == "__main__":
