@@ -7,7 +7,6 @@ class CNN(nn.Module):
 
     def __init__(self):
         super(CNN, self).__init__()
-        self.optimizer = None
         self.float()
 
         self.cnn_layers = nn.Sequential(
@@ -38,15 +37,15 @@ class CNN(nn.Module):
         x = self.linear_layers(x)
         return x
 
-    def batch(self, x, y, loss_func):
+    def batch(self, x, y, optimizer, loss_func):
         yhat = self.forward(x)
         loss = loss_func(yhat, y)
-        self.optimizer.zero_grad()
+        optimizer.zero_grad()
         loss.backward()
-        self.optimizer.step()
+        optimizer.step()
         return loss.item()
 
-    def train(self, trainLoader, validationLoader, loss_func, device, epochs=20):        
+    def train(self, trainLoader, validationLoader, optimizer, loss_func, device, epochs=20):        
         self.losses = []
         self.valLosses = []
 
@@ -57,7 +56,7 @@ class CNN(nn.Module):
             for (x, y) in trainLoader:
                 x = x.to(device).float()
                 y = y.to(device).float()
-                running_loss += self.batch(x, y, loss_func)
+                running_loss += self.batch(x, y, optimizer, loss_func)
     
             self.losses.append(running_loss / len(trainLoader))
             self.valLosses.append(self.validation(validationLoader, loss_func, device))

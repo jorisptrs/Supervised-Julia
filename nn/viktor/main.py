@@ -10,12 +10,13 @@ from feedforward import CNN
 import save
 
 
-DATASET_SIZE = 2000
+DATASET_SIZE = 100
 BATCH_SIZE = 128
 TEST_SET_PROP = 0.7
 
-EPOCHS = 10
+EPOCHS = 15
 LEARNING_RATE = 0.005
+L2_NORM_REG_PENALTY = 0.09
 
 CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -44,16 +45,12 @@ def feedforward():
     """
     (data_loader, validation_loader) = load_data()    
     model = CNN()
+    model.to(DEVICE)
 
-    model.optimizer = Adam(model.parameters(), lr=LEARNING_RATE) # also try SGD
-    loss_func = nn.MSELoss()
+    optimizer = Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=L2_NORM_REG_PENALTY) # also try SGD
+    loss_func = nn.MSELoss().to(DEVICE)
 
-    # checking if GPU is available
-    if torch.cuda.is_available(): # Check if this is actually correct
-        model = model.cuda()
-        loss_func = loss_func.cuda()
-
-    model.train(data_loader, validation_loader, loss_func, DEVICE, EPOCHS)
+    model.train(data_loader, validation_loader, optimizer, loss_func, DEVICE, EPOCHS)
     model.validation(validation_loader, loss_func, DEVICE, output=True)
 
     save.model_save(model, MODEL_NAME)
