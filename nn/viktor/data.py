@@ -6,7 +6,7 @@ import zipfile
 import os
 import time
 import multiprocessing
-from sklearn.preprocessing import StandardScaler
+from sklearn import preprocessing
 
 class JuliaDataset(tdata.Dataset):
     """
@@ -57,13 +57,12 @@ class JuliaDataset(tdata.Dataset):
 
     def normalize(self, x):
         """
-        Normalize the features such that each pixel-value is between 0 and 1.
-        Standardize to mean = 0 and std = 1.
+        Mim-max scale all pixel values to a range of [0, 1]
         """
         old_shape = x.shape
         x = x.reshape(old_shape[0], -1)
-        scaler = StandardScaler().fit(x)
-        x = scaler.transform(x)
+        min_max_scaler = preprocessing.MinMaxScaler()
+        x = min_max_scaler.fit_transform(x)
         x = x.reshape(old_shape)
         return x
 
