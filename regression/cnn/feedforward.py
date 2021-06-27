@@ -9,8 +9,6 @@ class CNN(nn.Module):
     def __init__(self, config):
         super(CNN, self).__init__()
         self.float()
-        self.losses = []
-        self.val_losses = []
 
         self.cnn_layers = nn.Sequential(
             # 1st conv layer
@@ -54,7 +52,7 @@ class CNN(nn.Module):
         optimizer.step()
         return loss.item()
 
-    def train(self, train_set, val_set, optimizer, loss_func, device):
+    def train(self, train_set, optimizer, loss_func, device):
         """
         Train the network on the training set, while tracking the losses on the training-
         and validation sets.
@@ -64,9 +62,7 @@ class CNN(nn.Module):
             x = x.to(device).float()
             y = y.to(device).float()
             running_loss += self.batch(x, y, optimizer, loss_func)
-        self.losses.append(running_loss / len(train_set))
-        self.val_losses.append(self.validation(val_set, loss_func, device))
-        return running_loss
+        return running_loss / len(train_set)
 
     def validation(self, validationLoader, loss_func, device, output=False):
         """
@@ -89,7 +85,7 @@ class CNN(nn.Module):
                     y_true = y[i]
                     self.y_compare.append((y_true.tolist(), y_pred.tolist()))
 
-                    #print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
-                    #" y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
+                    print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
+                    " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
-        return loss
+        return loss.item()

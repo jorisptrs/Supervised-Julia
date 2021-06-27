@@ -11,18 +11,13 @@ import multiprocessing
 import data
 from feedforward import CNN
 import save
+import itertools
 
-# Hyper hyper
-import ray
-from ray import tune
-from ray.tune.schedulers import ASHAScheduler
-
-
-DATASET_SIZE = 1000
+DATASET_SIZE = 10
 BATCH_SIZE = 128
 TEST_SET_PROP = 0.7
 
-N_FOLDS = 2
+N_FOLDS = 5
 EPOCHS = 10
 LEARNING_RATE = 0.005
 L2_NORM_REG_PENALTY = 0.09
@@ -56,33 +51,34 @@ def onetime_split(dataset):
     return (training_loader, validation_loader)
 
 
-def feedforward(config):
+def feedforward(train_loader, val_loader, config, show_results = False):
     """
     Train a CNN for EPOCHS epochs.
     Notify tune as shown in https://docs.ray.io/en/master/tune/index.html
     """
-    juliaDataset = load_data()
-    train_loader, val_loader = onetime_split(juliaDataset)
     model = CNN(config)
     model.to(DEVICE)
 
     optimizer = SGD(model.parameters(), config['lr'], weight_decay=L2_NORM_REG_PENALTY)
     loss_func = nn.MSELoss().to(DEVICE)
-    model.losses = []
-    model.val_losses = []
 
+    train_losses = []
+    val_losses = []
+        
     for epoch in range(EPOCHS):
         print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
-        train_loss = model.train(train_loader, val_loader, optimizer, loss_func, DEVICE)
-        val_loss = model.validation(val_loader, loss_func, DEVICE, output=True)
-        print("Loss: " + str(val_loss))
-        tune.report(mean_loss=val_loss)
-    
-    # save.model_save(model, MODEL_NAME)
-    # save.graph_loss(model.losses, model.val_losses)
-    # save.save_loss(model.losses, model.val_losses)
-    # save.save_predictions(model.y_compare)
+        train_loss = model.train(train_loader, optimizer, loss_func, DEVICE)
+        train_losses.append(train_loss)
+        val_loss = model.validation(val_loader, loss_func, DEVICE)
+        val_losses.append(val_loss)
 
+    if show_results:
+        save.model_save(model, MODEL_NAME)
+        save.graph_loss(train_losses, val_losses)
+        save.save_loss(train_losses, val_losses)
+        save.save_predictions(model.y_compare)
+
+    return val_losses
 
 def crossvalidation(dataset):
     """
@@ -90,33 +86,45 @@ def crossvalidation(dataset):
     """
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
 
-    for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset.x)):
+    lrs = [.001,.003,.01,.03]
+    risks = []
+    # iterate through flexibilities
+    for lr in lrs:
+        config = {'lr' : lr}
         if DEBUG:
-            print("Fold " + str(fold + 1) + " out of " + str(N_FOLDS))
+            print("Learning rate: " + str(lr))
+        
+        running_val_risk = 0.0
+        # iterate through k folds
+        for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset.x)):
+            if DEBUG:
+                print("Fold " + str(fold + 1) + " out of " + str(N_FOLDS))
 
-        # Shuffle data
-        train_sampler = torch.utils.data.SubsetRandomSampler(train_ids)
-        val_sampler = torch.utils.data.SubsetRandomSampler(val_ids)
-        
-        # Load data in shuffled order
-        train_loader = torch.utils.data.DataLoader(dataset, sampler=train_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
-        val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
-        
-        feedforward(train_loader, val_loader, {'lr' : LEARNING_RATE})
+            # Shuffle data
+            train_sampler = torch.utils.data.SubsetRandomSampler(train_ids)
+            val_sampler = torch.utils.data.SubsetRandomSampler(val_ids)
+            
+            # Load data in shuffled order
+            train_loader = torch.utils.data.DataLoader(dataset, sampler=train_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
+            val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
+            
+            # Add final validation risk
+            running_val_risk += feedforward(train_loader, val_loader, config)[-1]
+        risks.append((config, running_val_risk / N_FOLDS))
     
-    # find average accuracy
+    best_config = min(risks, key = lambda t: t[1])[0]
+    if DEBUG:
+        print("Optimal config: ", best_config)
+
+    (train_loader, val_loader) = onetime_split(dataset)
+    feedforward(train_loader, val_loader, best_config, True)
+
 
 if __name__ == "__main__":
     if DEBUG:
         print("Operating on " + DEVICE)
-    #juliaDataset = load_data()
-    #crossvalidation(juliaDataset)
+    juliaDataset = load_data()
+    crossvalidation(juliaDataset)
 
     #feedforward({'lr' : LEARNING_RATE})
-
-    #ray.init(log_to_driver=False)
-    param_space = {"lr": ray.tune.grid_search([0.001, 0.01, 0.1])}
-    analysis = ray.tune.run(
-        feedforward, config=param_space)
-    print("Best config: ", analysis.get_best_config(metric="mean_loss", mode="min"))
-    #df = analysis.dataframe()
+    
