@@ -11,7 +11,7 @@ import save
 
 # Hyper hyper
 import torch.optim as optim
-from ray import tune
+import ray
 
 
 DATASET_SIZE = 1000
@@ -52,10 +52,12 @@ def onetime_split(dataset):
     return (training_loader, validation_loader)
 
 
-def feedforward(train_loader, val_loader, config):
+def feedforward(config):
     """
     Train a CNN to predict constants
     """
+    juliaDataset = load_data()
+    train_loader, val_loader = onetime_split(juliaDataset)
     model = CNN(config)
     model.to(DEVICE)
 
@@ -96,9 +98,13 @@ def crossvalidation(dataset):
 if __name__ == "__main__":
     if DEBUG:
         print("Operating on " + DEVICE)
-    juliaDataset = load_data()
+    #juliaDataset = load_data()
     #crossvalidation(juliaDataset)
 
     # old format:
-    training_loader, validation_loader = onetime_split(juliaDataset)
-    feedforward(training_loader, validation_loader, {'lr' : LEARNING_RATE})
+    #training_loader, validation_loader = onetime_split(juliaDataset)
+    #feedforward(training_loader, validation_loader, {'lr' : LEARNING_RATE})
+    ray.init(log_to_driver=False) 
+    analysis = ray.tune.run(
+        feedforward, config={"lr": ray.tune.grid_search([0.001, 0.01, 0.1])})
+    print("Best config: ", analysis.get_best_config(metric="loss"))

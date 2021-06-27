@@ -71,7 +71,7 @@ class CNN(nn.Module):
                 y = y.to(device).float()
                 running_loss += self.batch(x, y, optimizer, loss_func)
     
-            #tune.report(loss=running_loss)
+            tune.report(loss=running_loss)
             self.losses.append(running_loss / len(train_set))
             self.val_losses.append(self.validation(val_set, loss_func, device))
 
