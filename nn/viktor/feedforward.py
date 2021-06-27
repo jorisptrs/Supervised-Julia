@@ -8,7 +8,7 @@ class CNN(nn.Module):
     Custom CNN that extends Pytorch's nn module.
     """
 
-    def __init__(self):
+    def __init__(self, config):
         super(CNN, self).__init__()
         self.float()
 
@@ -71,7 +71,7 @@ class CNN(nn.Module):
                 y = y.to(device).float()
                 running_loss += self.batch(x, y, optimizer, loss_func)
     
-            tune.report(loss=running_loss)
+            #tune.report(loss=running_loss)
             self.losses.append(running_loss / len(train_set))
             self.val_losses.append(self.validation(val_set, loss_func, device))
 
@@ -96,13 +96,7 @@ class CNN(nn.Module):
                     y_true = y[i]
                     self.y_compare.append((y_true.tolist(), y_pred.tolist()))
 
-<<<<<<< HEAD
-                    print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
-                    " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
-        
-=======
                     #print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
                     #" y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
->>>>>>> 1a40688884e00b1710211e459ded351c94213441
         return loss.item()
