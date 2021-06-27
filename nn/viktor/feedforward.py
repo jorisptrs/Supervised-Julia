@@ -1,3 +1,4 @@
+
 import torch.nn as nn
 
 
@@ -93,7 +94,7 @@ class CNN(nn.Module):
                     y_true = y[i]
                     self.y_compare.append((y_true.tolist(), y_pred.tolist()))
 
-                    print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
-                    " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
+                    #print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
+                    #" y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
         return loss.item()

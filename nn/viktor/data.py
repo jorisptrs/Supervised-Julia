@@ -12,6 +12,7 @@ class JuliaDataset(tdata.Dataset):
     """
     Our custom dataset.
     """
+    
     def __init__(self, num_cores, debug=True):
         self.num_cores = num_cores
         self.debug = debug
