@@ -80,7 +80,7 @@ private:
 	std::complex<long double> nextUniform() {
 		std::complex<long double> constant;
 		double real, imag;
-		double alpha, r;
+		double alpha, r, u;
 
 		alpha = randNum(2 * M_PI);
 		u = randNum(rStep) + randNum(rStep);
