@@ -1,3 +1,4 @@
+import numpy as np
 from numpy import mod
 import torch.nn as nn
 import torch
@@ -62,12 +63,15 @@ def feedforward(train_loader, val_loader, config, show_results = False):
     val_losses = []
         
     for epoch in range(EPOCHS):
-        print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
+        # print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
         train_loss = model.train(train_loader, optimizer, loss_func, DEVICE)
         train_losses.append(train_loss)
         val_loss = model.validation(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
-
+    for loss in val_losses:
+        if np.isnan(loss):
+            print("nan loss using config: ", config)
+            return val_losses
     if show_results:
         save.model_save(model, MODEL_NAME)
         save.graph_loss(train_losses, val_losses)
@@ -83,7 +87,7 @@ def crossvalidation(dataset):
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
 
     lrs = [.03]#[.001, .003, .01, .03]
-    alphas = [.001, .003, .01, .03]
+    alphas = [.5,.4,.3,.2,.1,.07,.05] # Originally .09
     #lrs = [x for x in range(0,.5,.05)]
     risks = []
     # iterate through flexibilities
@@ -108,17 +112,21 @@ def crossvalidation(dataset):
             val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
             
             # Add final validation risk
-            running_val_risk += feedforward(train_loader, val_loader, config)[-1]
+            val_risks = feedforward(train_loader, val_loader, config)
+            running_val_risk += val_risks[-1]
         risks.append((config, running_val_risk / N_FOLDS))
     
     best_config = min(risks, key = lambda t: t[1])[0]
     
     # Plot THE curve
     alpha_dict = {x : 0.0 for x in alphas}
-    for (config, risk) in risks:
-        alpha_dict[config['alpha']] += risk/len(lrs)
+    for elem in risks:
+        if np.isnan(elem[1]):
+            print("Config caused nan/infinite loss")
+            continue
+        alpha_dict[elem[0]['alpha']] += (elem[1] / len(lrs))
     print(alpha_dict)
-    
+
     if DEBUG:
         print("Optimal config: ", best_config)
 

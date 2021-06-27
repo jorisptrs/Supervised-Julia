@@ -33,7 +33,8 @@ def graph_loss(loss_arr, val_losses):
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
-    plt.show()
+    #plt.show()
+    plt.savefig("training_fig1.png")
 
 def model_save(model, path):
     torch.save(model.state_dict(), path)
