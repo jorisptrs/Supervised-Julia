@@ -2,7 +2,6 @@ from numpy import mod
 import torch.nn as nn
 import torch
 from torch.optim import Adam, SGD
-import torch.optim as optim
 from sklearn.model_selection import KFold
 
 import os
@@ -13,14 +12,12 @@ from feedforward import CNN
 import save
 import itertools
 
-DATASET_SIZE = 10
+DATASET_SIZE = 1000
 BATCH_SIZE = 128
 TEST_SET_PROP = 0.7
 
-N_FOLDS = 5
-EPOCHS = 10
-LEARNING_RATE = 0.005
-L2_NORM_REG_PENALTY = 0.09
+N_FOLDS = 2
+EPOCHS = 15
 
 CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -54,12 +51,11 @@ def onetime_split(dataset):
 def feedforward(train_loader, val_loader, config, show_results = False):
     """
     Train a CNN for EPOCHS epochs.
-    Notify tune as shown in https://docs.ray.io/en/master/tune/index.html
     """
     model = CNN(config)
     model.to(DEVICE)
 
-    optimizer = SGD(model.parameters(), config['lr'], weight_decay=L2_NORM_REG_PENALTY)
+    optimizer = SGD(model.parameters(), config['lr'], weight_decay=config['alpha'])
     loss_func = nn.MSELoss().to(DEVICE)
 
     train_losses = []
@@ -76,7 +72,7 @@ def feedforward(train_loader, val_loader, config, show_results = False):
         save.model_save(model, MODEL_NAME)
         save.graph_loss(train_losses, val_losses)
         save.save_loss(train_losses, val_losses)
-        save.save_predictions(model.y_compare)
+        #save.save_predictions(model.y_compare)
 
     return val_losses
 
@@ -86,13 +82,16 @@ def crossvalidation(dataset):
     """
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
 
-    lrs = [.001,.003,.01,.03]
+    lrs = [.03]#[.001, .003, .01, .03]
+    alphas = [.001, .003, .01, .03]
+    #lrs = [x for x in range(0,.5,.05)]
     risks = []
     # iterate through flexibilities
-    for lr in lrs:
-        config = {'lr' : lr}
+    for (lr, alpha) in itertools.product(lrs, alphas):
+        config = {'lr' : lr, 'alpha' : alpha}
         if DEBUG:
             print("Learning rate: " + str(lr))
+            print("Alpha: " + str(alpha))
         
         running_val_risk = 0.0
         # iterate through k folds
@@ -113,6 +112,13 @@ def crossvalidation(dataset):
         risks.append((config, running_val_risk / N_FOLDS))
     
     best_config = min(risks, key = lambda t: t[1])[0]
+    
+    # Plot THE curve
+    alpha_dict = {x : 0.0 for x in alphas}
+    for (config, risk) in risks:
+        alpha_dict[config['alpha']] += risk/len(lrs)
+    print(alpha_dict)
+    
     if DEBUG:
         print("Optimal config: ", best_config)
 

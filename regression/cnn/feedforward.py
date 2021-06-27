@@ -1,4 +1,5 @@
 
+import torch
 import torch.nn as nn
 
 class CNN(nn.Module):
@@ -64,28 +65,30 @@ class CNN(nn.Module):
             running_loss += self.batch(x, y, optimizer, loss_func)
         return running_loss / len(train_set)
 
-    def validation(self, validationLoader, loss_func, device, output=False):
+    def validation(self, val_set, loss_func, device, output=False):
         """
         Compute predictions on the lock-box validation set and print them if desired.
         Return the total loss.
         """
         self.y_compare = []
         loss = 0.0
-    
-        for (x, y) in validationLoader:
-            x = x.to(device).float()
-            y = y.to(device).float()
-
-            yhat = self.forward(x)
-            loss += loss_func(yhat, y)
-
-            if output:
-     
-                for i, y_pred in enumerate(yhat):
-                    y_true = y[i]
-                    self.y_compare.append((y_true.tolist(), y_pred.tolist()))
-
-                    print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
-                    " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
+        
+        with torch.no_grad():
             
-        return loss.item()
+            for (x, y) in val_set:
+                x = x.to(device).float()
+                y = y.to(device).float()
+
+                yhat = self.forward(x)
+                loss += loss_func(yhat, y)
+
+                if output:
+        
+                    for i, y_pred in enumerate(yhat):
+                        y_true = y[i]
+                        self.y_compare.append((y_true.tolist(), y_pred.tolist()))
+
+                        print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
+                        " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
+            
+        return loss.item() / len(val_set)
