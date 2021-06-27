@@ -7,6 +7,7 @@ trainingData/
 *.jmodel
 *.dat
 *.csv
+*model
 
 # Testing MNIST Data
 **/*MNIST/
@@ -21,6 +22,7 @@ __pycache__/
 # Images
 *.bmp
 *.png
+*.pdf
 
 # VS Code
 .vscode/

@@ -1,3 +1,4 @@
+
 import torch.nn as nn
 from ray import tune
 
@@ -95,7 +96,13 @@ class CNN(nn.Module):
                     y_true = y[i]
                     self.y_compare.append((y_true.tolist(), y_pred.tolist()))
 
+<<<<<<< HEAD
                     print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
                     " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
         
+=======
+                    #print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
+                    #" y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
+            
+>>>>>>> 1a40688884e00b1710211e459ded351c94213441
         return loss.item()
