@@ -1,17 +1,21 @@
+from numpy import mod
 import torch.nn as nn
 import torch
 from torch.optim import Adam, SGD
+import torch.optim as optim
 from sklearn.model_selection import KFold
 
 import os
 import multiprocessing
+
 import data
 from feedforward import CNN
 import save
 
 # Hyper hyper
-import torch.optim as optim
 import ray
+from ray import tune
+from ray.tune.schedulers import ASHAScheduler
 
 
 DATASET_SIZE = 1000
@@ -26,7 +30,7 @@ L2_NORM_REG_PENALTY = 0.09
 CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
-DATASET_PATH = os.path.join('..','trainingData')
+DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
 
 DEBUG = True
 
@@ -54,7 +58,8 @@ def onetime_split(dataset):
 
 def feedforward(config):
     """
-    Train a CNN to predict constants
+    Train a CNN for EPOCHS epochs.
+    Notify tune as shown in https://docs.ray.io/en/master/tune/index.html
     """
     juliaDataset = load_data()
     train_loader, val_loader = onetime_split(juliaDataset)
@@ -63,14 +68,20 @@ def feedforward(config):
 
     optimizer = SGD(model.parameters(), config['lr'], weight_decay=L2_NORM_REG_PENALTY)
     loss_func = nn.MSELoss().to(DEVICE)
+    model.losses = []
+    model.val_losses = []
 
-    model.train(train_loader, val_loader, optimizer, loss_func, DEVICE, EPOCHS)
-    model.validation(val_loader, loss_func, DEVICE, output=True)
-
-    save.model_save(model, MODEL_NAME)
-    save.graph_loss(model.losses, model.val_losses)
-    save.save_loss(model.losses, model.val_losses)
-    save.save_predictions(model.y_compare)
+    for epoch in range(EPOCHS):
+        print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
+        train_loss = model.train(train_loader, val_loader, optimizer, loss_func, DEVICE)
+        val_loss = model.validation(val_loader, loss_func, DEVICE, output=True)
+        print("Loss: " + str(val_loss))
+        tune.report(mean_loss=val_loss)
+    
+    # save.model_save(model, MODEL_NAME)
+    # save.graph_loss(model.losses, model.val_losses)
+    # save.save_loss(model.losses, model.val_losses)
+    # save.save_predictions(model.y_compare)
 
 
 def crossvalidation(dataset):
@@ -101,10 +112,11 @@ if __name__ == "__main__":
     #juliaDataset = load_data()
     #crossvalidation(juliaDataset)
 
-    # old format:
-    #training_loader, validation_loader = onetime_split(juliaDataset)
-    #feedforward(training_loader, validation_loader, {'lr' : LEARNING_RATE})
-    ray.init(log_to_driver=False) 
+    #feedforward({'lr' : LEARNING_RATE})
+
+    #ray.init(log_to_driver=False)
+    param_space = {"lr": ray.tune.grid_search([0.001, 0.01, 0.1])}
     analysis = ray.tune.run(
-        feedforward, config={"lr": ray.tune.grid_search([0.001, 0.01, 0.1])})
-    print("Best config: ", analysis.get_best_config(metric="loss"))
+        feedforward, config=param_space)
+    print("Best config: ", analysis.get_best_config(metric="mean_loss", mode="min"))
+    #df = analysis.dataframe()

@@ -1,7 +1,5 @@
 
 import torch.nn as nn
-from ray import tune
-
 
 class CNN(nn.Module):
     """
@@ -11,6 +9,8 @@ class CNN(nn.Module):
     def __init__(self, config):
         super(CNN, self).__init__()
         self.float()
+        self.losses = []
+        self.val_losses = []
 
         self.cnn_layers = nn.Sequential(
             # 1st conv layer
@@ -54,26 +54,19 @@ class CNN(nn.Module):
         optimizer.step()
         return loss.item()
 
-    def train(self, train_set, val_set, optimizer, loss_func, device, epochs=20):
+    def train(self, train_set, val_set, optimizer, loss_func, device):
         """
         Train the network on the training set, while tracking the losses on the training-
         and validation sets.
-        """     
-        self.losses = []
-        self.val_losses = []
-
-        for epoch in range(epochs):
-            running_loss = 0.0
-            print("Epoch: " + str(epoch + 1) + " out of " + str(epochs))
-            
-            for (x, y) in train_set:
-                x = x.to(device).float()
-                y = y.to(device).float()
-                running_loss += self.batch(x, y, optimizer, loss_func)
-    
-            tune.report(loss=running_loss)
-            self.losses.append(running_loss / len(train_set))
-            self.val_losses.append(self.validation(val_set, loss_func, device))
+        """
+        running_loss = 0.0
+        for (x, y) in train_set:
+            x = x.to(device).float()
+            y = y.to(device).float()
+            running_loss += self.batch(x, y, optimizer, loss_func)
+        self.losses.append(running_loss / len(train_set))
+        self.val_losses.append(self.validation(val_set, loss_func, device))
+        return running_loss
 
     def validation(self, validationLoader, loss_func, device, output=False):
         """
@@ -99,4 +92,4 @@ class CNN(nn.Module):
                     #print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
                     #" y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
-        return loss.item()
+        return loss
