@@ -1,5 +1,6 @@
 import numpy as np
 import torch.utils.data as tdata
+import torch
 
 import requests
 import zipfile
@@ -8,12 +9,18 @@ import time
 import multiprocessing
 from sklearn import preprocessing
 
+BATCH_SIZE = 128
+CORES = multiprocessing.cpu_count()
+DATASET_SIZE = 100
+DATASET_PATH = os.path.join(os.path.realpath(__file__),'..','trainingData')
+TEST_SET_PROP = 0.7
+
+
 class JuliaDataset(tdata.Dataset):
     """
     Our custom dataset.
     """
-    def __init__(self, num_cores, debug=True):
-        self.num_cores = num_cores
+    def __init__(self, debug=True):
         self.debug = debug
         self.num_images = 0
         self.meta_data = dict()
@@ -23,6 +30,7 @@ class JuliaDataset(tdata.Dataset):
         self.y = []
         self.maxY = 0
         self.minY = 0
+        self.load_images(DATASET_PATH, DATASET_SIZE)
 
     def __len__(self):
         """
@@ -57,12 +65,13 @@ class JuliaDataset(tdata.Dataset):
 
     def normalize(self, x):
         """
-        Mim-max scale all pixel values to a range of [0, 1]
+        Min-max scale all pixel values to a range of [0, 1]
         """
         old_shape = x.shape
         x = x.reshape(old_shape[0], -1)
-        min_max_scaler = preprocessing.MinMaxScaler()
-        x = min_max_scaler.fit_transform(x)
+        scaler = preprocessing.MinMaxScaler()
+        #scaler = preprocessing.StandardScaler()
+        x = scaler.fit_transform(x)
         x = x.reshape(old_shape)
         return x
 
@@ -81,14 +90,14 @@ class JuliaDataset(tdata.Dataset):
         self.read_header(path)
 
         if self.debug:
-            print("Loading data into RAM...")
+            print("Loading data into (V)RAM...")
             start_time = time.time()
 
         for index in range(num_images):
             file_names.append(os.path.join(path, "data" + str(index) + '.jset'))
 
         if pooling:
-            pool = multiprocessing.Pool(self.num_cores)
+            pool = multiprocessing.Pool(CORES)
             self.x = pool.map(self.reader, file_names)
         else:    
             for index in range(num_images):
@@ -138,3 +147,17 @@ class JuliaDataset(tdata.Dataset):
         except:
             if self.debug:
                 print("Zipping Failed.")
+
+    def get_split_data(self):
+        """
+        Returns the loaded dataset, split into training- and validation sets.
+        """
+        # Split Data
+        training_size = int(DATASET_SIZE * TEST_SET_PROP)
+        validation_size = DATASET_SIZE - training_size
+        training_set, validation_set = torch.utils.data.random_split(self, [training_size, validation_size])
+
+        training_loader = torch.utils.data.DataLoader(training_set, shuffle=True, batch_size=BATCH_SIZE, num_workers=CORES)
+        validation_loader = torch.utils.data.DataLoader(validation_set, shuffle=False, batch_size=len(validation_set), num_workers=CORES)
+
+        return (training_loader, validation_loader)
