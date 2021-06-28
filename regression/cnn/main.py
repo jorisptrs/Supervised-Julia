@@ -1,5 +1,5 @@
+
 import numpy as np
-from numpy import mod
 import torch.nn as nn
 import torch
 from torch.optim import Adam, SGD
@@ -7,18 +7,19 @@ from sklearn.model_selection import KFold
 
 import os
 import multiprocessing
+import itertools
 
 import data
 from feedforward import CNN
 import save
-import itertools
 
-DATASET_SIZE = 1000
+
+DATASET_SIZE = 2000
 BATCH_SIZE = 128
-TEST_SET_PROP = 0.7
+TEST_SET_PROP = 0.5
 
 N_FOLDS = 2
-EPOCHS = 15
+EPOCHS = 10
 
 CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -48,7 +49,6 @@ def onetime_split(dataset):
 
     return (training_loader, validation_loader)
 
-
 def feedforward(train_loader, val_loader, config, show_results = False):
     """
     Train a CNN for EPOCHS epochs.
@@ -56,29 +56,26 @@ def feedforward(train_loader, val_loader, config, show_results = False):
     model = CNN(config)
     model.to(DEVICE)
 
-    optimizer = SGD(model.parameters(), config['lr'], weight_decay=config['alpha'])
+    optimizer = Adam(model.parameters(), config['lr'], weight_decay=config['alpha'])
     loss_func = nn.MSELoss().to(DEVICE)
 
     train_losses = []
     val_losses = []
         
     for epoch in range(EPOCHS):
-        # print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
-        train_loss = model.train(train_loader, optimizer, loss_func, DEVICE)
+        print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
+        train_loss = model.train(train_loader, optimizer, loss_func, DEVICE) 
         train_losses.append(train_loss)
-        val_loss = model.validation(val_loader, loss_func, DEVICE)
+        val_loss = model.validation(val_loader, loss_func, DEVICE) 
         val_losses.append(val_loss)
-    for loss in val_losses:
-        if np.isnan(loss):
-            print("nan loss using config: ", config)
-            return val_losses
+    
     if show_results:
-        save.model_save(model, MODEL_NAME)
+        #save.model_save(model, MODEL_NAME)
         save.graph_loss(train_losses, val_losses)
-        save.save_loss(train_losses, val_losses)
+        #save.save_loss(train_losses, val_losses)
         #save.save_predictions(model.y_compare)
 
-    return val_losses
+    return val_losses[-1]
 
 def crossvalidation(dataset):
     """
@@ -87,7 +84,7 @@ def crossvalidation(dataset):
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
 
     lrs = [.03]#[.001, .003, .01, .03]
-    alphas = [.5,.4,.3,.2,.1,.07,.05] # Originally .09
+    alphas = [0]#,.4,.3,.2,.1,.07,.05] # Originally .09
     #lrs = [x for x in range(0,.5,.05)]
     risks = []
     # iterate through flexibilities
@@ -100,6 +97,7 @@ def crossvalidation(dataset):
         running_val_risk = 0.0
         # iterate through k folds
         for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset.x)):
+            
             if DEBUG:
                 print("Fold " + str(fold + 1) + " out of " + str(N_FOLDS))
 
@@ -110,22 +108,21 @@ def crossvalidation(dataset):
             # Load data in shuffled order
             train_loader = torch.utils.data.DataLoader(dataset, sampler=train_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
             val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
-            
+     
             # Add final validation risk
-            val_risks = feedforward(train_loader, val_loader, config)
-            running_val_risk += val_risks[-1]
+            running_val_risk += feedforward(train_loader, val_loader, config, True)
         risks.append((config, running_val_risk / N_FOLDS))
     
     best_config = min(risks, key = lambda t: t[1])[0]
     
     # Plot THE curve
-    alpha_dict = {x : 0.0 for x in alphas}
-    for elem in risks:
-        if np.isnan(elem[1]):
-            print("Config caused nan/infinite loss")
-            continue
-        alpha_dict[elem[0]['alpha']] += (elem[1] / len(lrs))
-    print(alpha_dict)
+    # alpha_dict = {x : 0.0 for x in alphas}
+    # for elem in risks:
+    #     if np.isnan(elem[1]):
+    #         print("Config caused nan/infinite loss")
+    #         continue
+    #     alpha_dict[elem[0]['alpha']] += (elem[1] / len(lrs))
+    # print(alpha_dict)
 
     if DEBUG:
         print("Optimal config: ", best_config)
@@ -139,6 +136,4 @@ if __name__ == "__main__":
         print("Operating on " + DEVICE)
     juliaDataset = load_data()
     crossvalidation(juliaDataset)
-
-    #feedforward({'lr' : LEARNING_RATE})
     

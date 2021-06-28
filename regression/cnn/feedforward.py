@@ -80,7 +80,7 @@ class CNN(nn.Module):
                 y = y.to(device).float()
 
                 yhat = self.forward(x)
-                loss += loss_func(yhat, y)
+                loss += loss_func(yhat, y).item()
 
                 if output:
         
@@ -91,4 +91,4 @@ class CNN(nn.Module):
                         print("y^=" + str(y_pred[0].item()) + "," + str(y_pred[1].item()) + 
                         " y=" + str(y_true[0].item()) + "," + str(y_true[1].item()))
             
-        return loss.item() / len(val_set)
+        return loss

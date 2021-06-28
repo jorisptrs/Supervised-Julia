@@ -2,7 +2,7 @@
 import torch
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+import time 
 
 def save_predictions(pred_arr):
     y_true_real = []
@@ -22,8 +22,8 @@ def save_predictions(pred_arr):
     output.to_csv('predictions.csv', index=False)
 
 def save_loss(loss_arr, val_arr):
-    output = pd.DataFrame(list(zip(loss_arr, val_arr)))
-    output.columns = ['loss', 'val_loss']
+    output = pd.DataFrame(loss_arr)
+    output.columns = ['loss']
     output.to_csv('loss.csv', index=False)
 
 def graph_loss(loss_arr, val_losses):
@@ -34,7 +34,7 @@ def graph_loss(loss_arr, val_losses):
     plt.ylabel("Loss")
     plt.legend()
     #plt.show()
-    plt.savefig("training_fig1.png")
+    plt.savefig("training_fig" + str(time.time()) + ".png")
 
 def model_save(model, path):
     torch.save(model.state_dict(), path)
