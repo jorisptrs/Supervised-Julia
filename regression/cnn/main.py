@@ -1,4 +1,4 @@
-
+from save import plot_4, plot_at_idx
 import numpy as np
 import torch.nn as nn
 import torch
@@ -22,7 +22,7 @@ N_FOLDS = 3
 EPOCHS = 10
 
 CORES = multiprocessing.cpu_count()
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cpu'#'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
 
@@ -143,5 +143,9 @@ if __name__ == "__main__":
     if DEBUG:
         print("Operating on " + DEVICE)
     juliaDataset = load_data()
+
+    #plot_4(juliaDataset)
+    plot_at_idx(juliaDataset, 13)
+
     crossvalidation(juliaDataset)
     

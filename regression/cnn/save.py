@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 import pandas as pd
 import time
+import numpy as np
 
 
 class Graph:
@@ -73,3 +74,22 @@ def model_save(model, path):
 
 def model_load(model, path):
     model.load_state_dict(torch.load(path))
+
+def plot_4(data_set):
+    # plotting example images
+    _, axes = plt.subplots(nrows=1, ncols=4, figsize=(20, 5))
+    for ax, image, label in zip(axes, data_set.x[:4], data_set.y[:4]):
+        print(image.shape)
+        full_img = np.concatenate((np.flip(np.flip(image, 0), 1), image), axis=0)
+        ax.set_axis_off()
+        ax.imshow(full_img, cmap=plt.cm.gray_r)
+        ax.set_title('y: {}'.format(label))
+    plt.show()
+
+def plot_at_idx(data_set, idx):
+    fig, ax = plt.subplots(1,1)
+    full_img = np.concatenate((np.flip(np.flip(data_set.x[idx], 0), 1), data_set.x[idx]), axis=0)
+    ax.set_axis_off()
+    plt.imshow(full_img, cmap=plt.cm.gray_r)
+    ax.set_title('y: {}'.format(data_set.y[idx]))
+    plt.show()
