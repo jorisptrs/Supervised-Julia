@@ -8,17 +8,17 @@
 #include <string>
 #include <math.h>
 #include <fstream>
-#include <vector>
 
 #include "Julia.h"
 #include "Sampler.h"
 
-const int BMP_WIDTH = 128;
-const int BMP_HEIGHT = 64;
-const int ITERATIONS = 256;
-const long double xmin = -1.5, xmax = 1.5;
-const long double ymin = 0, ymax = 1.5;
+const int BMP_SIZE = 521;
+const int ITERATIONS = 512;
+const long double xmin = -2, xmax = 2;
+const long double ymin = -2, ymax = 2;
 const double ESCAPE_THRESHOLD = 3.0;
+
+const bool INTERACTIVE = true;
 
 /*
 * Data generation
@@ -51,7 +51,7 @@ void interactive() {
         c.imag(cImg);
         c.real(cReal);
         auto start = std::chrono::system_clock::now();
-        julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
+        julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
         j.draw(c);
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
@@ -62,8 +62,6 @@ void interactive() {
 
 void generateData() {
     Sampler* sampler = nullptr;
-    std::vector<std::vector<double>> labels(nData, std::vector<double>(2, 0));
-
     if (type == "REPRESENTATIVE") {
         sampler = new Sampler(nData, rStep, minDistanceOnCircle, noiseMagnitude);
     }
@@ -72,9 +70,7 @@ void generateData() {
     }
     int i = 0;
 
-
-    std::string header = "IMAGE_WIDTH=" + std::to_string(BMP_WIDTH) + "\n" 
-        + "IMAGE_HEIGHT=" + std::to_string(BMP_HEIGHT) + "\n"
+    std::string header = "PICTURE_SIZE=" + std::to_string(BMP_SIZE) + "\n"
         + "N_DATA=" + std::to_string(nData) + "\n"
         + "SAMPLING_TYPE=" + type + "\n"
         + "ITERATIONS=" + std::to_string(ITERATIONS) + "\n"
@@ -83,9 +79,11 @@ void generateData() {
         + "YMIN=" + std::to_string(ymin) + "\n"
         + "YMAX=" + std::to_string(ymax) + "\n"
         + "ESCAPE_THRESHOLD=" + std::to_string(ESCAPE_THRESHOLD) + "\n"
+        + "[REPRESENTATIVE]\n"
         + "RSTEP=" + std::to_string(rStep) + "\n"
         + "MIN_DST_ON_CIRCLE=" + std::to_string(minDistanceOnCircle) + "\n"
         + "NOISE_MAGNITUDE=" + std::to_string(noiseMagnitude) + "\n"
+        + "[RANDOM]\n"
         + "SAMPLE_RADIUS=" + std::to_string(sampleRadius) + "\n";
 
     std::ofstream headerFile("./trainingData/header.txt");
@@ -94,34 +92,30 @@ void generateData() {
 
     while (sampler->hasNext()) {
         std::complex<long double> c = sampler->next();
+        std::string data = std::to_string(c.real())
+            + ","
+            + std::to_string(c.imag())
+            + "\n";
 
-        labels[i][0] = c.real();
-        labels[i][1] = c.imag();
+        julia j(BMP_SIZE, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
+        data += j.draw(c, false);
 
-        julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
-        std::string data;
-
-        data = j.draw(c);
-
-        std::ofstream dataFile("./trainingData/data" +  std::to_string(i) + ".jset");
+        std::ofstream dataFile("./trainingData/data" + std::to_string(i) + ".jset");
         dataFile << data;
         dataFile.close();
         i++;
-        if (i % 1000 == 999) {
-            printf("%d / %d\n", i, nData);
-        }
-    }
-
-    std::ofstream labelsFile("./trainingData/labels.txt");
-    for (const auto& label : labels) {
-        labelsFile << std::to_string(label[0])  << "," << std::to_string(label[1]) << "\n";
+        printf("%d / %d\n", i, nData);
     }
 
     delete sampler;
 }
 
 int main(int argc, char* argv[]) {
-
-    generateData();
+    if (INTERACTIVE) {
+        interactive();
+    }
+    else {
+        generateData();
+    }
     return 0;
 }

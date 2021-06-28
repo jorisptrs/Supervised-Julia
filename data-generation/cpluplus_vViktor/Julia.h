@@ -4,19 +4,20 @@
 
 #include <string>
 
+#include "Bitmap.h"
+
 
 class julia {
 public:
-    int width, height, iterations;
+    int pixels, iterations;
 
     long double xmin, xmax, xrange;
     long double ymin, ymax, yrange;
 
     double escapeDistance;
 
-    julia(int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, double escapeThreshold) {
-        this->width = width;
-        this->height = height;
+    julia(int pictureSize, int maxIterations, double xMin, double xMax, double yMin, double yMax, double escapeThreshold) {
+        pixels = pictureSize;
         iterations = maxIterations;
         xmin = xMin;
         xmax = xMax;
@@ -27,27 +28,46 @@ public:
         escapeDistance = escapeThreshold;
     }
 
-    std::string draw(std::complex<long double> k) {
+    std::string draw(std::complex<long double> k, bool isPicture = true) {
+        DWORD* bits = nullptr;
         std::string output = "";
+
+        if (isPicture) {
+            bmp.create(pixels, pixels);
+            bits = bmp.bits();
+        }
 
         int res, pos, biggest = -1;
         std::complex<long double> c;
 
-        for (int y = 0; y < height; y++) {
-            pos = y * height;
-            for (int x = 0; x < width; x++) {
-                c.imag((double)y / (double)height * yrange + ymin);
-                c.real((double)x / (double)width * xrange + xmin);
+        for (int y = 0; y < pixels; y++) {
+            pos = y * pixels;
+            for (int x = 0; x < pixels; x++) {
+                c.imag((double)y / (double)pixels * yrange + ymin);
+                c.real((double)x / (double)pixels * xrange + xmin);
                 res = inSet(c, k);
                 if (biggest < res) {
                     biggest = res;
                 }
-                output += (x == 0 ? "" : ",") + std::to_string(res);
-               
+                if (res > 0) {
+                    if (isPicture) {
+                        int n_res = mapRound(res, 0, iterations, 0, 255);
+                        res = RGB(0, n_res, 0);
+                    }
+                }
+                if (isPicture) {
+                    bits[pos++] = res;
+                }
+                else {
+                    output += (x == 0 ? "" : ",") + std::to_string(res);
+                }
             }
             output += "\n";
         }
-        // printf("Biggest %d\n", biggest);
+        if (isPicture) {
+            bmp.saveBitmap("./js.bmp");
+        }
+        printf("Biggest %d\n", biggest);
         return output;
     }
 private:
@@ -64,6 +84,7 @@ private:
             dist = (z.imag() * z.imag()) + (z.real() * z.real());
             if (dist > escapeDistance) return(ec);
         }
-        return iterations;
+        return 0;
     }
+    myBitmap bmp;
 };
