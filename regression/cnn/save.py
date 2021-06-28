@@ -2,7 +2,39 @@
 import torch
 import matplotlib.pyplot as plt
 import pandas as pd
-import time 
+import time
+
+
+class Graph:
+
+    def __init__(self):
+        self.folds = []
+        self.train_losses = []
+        self.val_losses = []
+        self.epochs = []
+        self.learning_rates = []
+        self.alphas = []
+
+    def append(self, fold, train_losses, val_losses, learning_rate, alpha):
+        n = len(train_losses)
+        self.folds += [fold + 1] * n
+        self.epochs += list(range(1, n + 1))
+        self.train_losses += train_losses
+        self.val_losses += val_losses
+        self.learning_rates += [learning_rate] * n
+        self.alphas += [alpha] * n
+
+    def save(self, path="data1.csv"):
+        df = pd.DataFrame({
+            "fold": self.folds,
+            "epoch": self.epochs,
+            "train_losses": self.train_losses,
+            "val_losses": self.val_losses,
+            "learning_rate" : self.learning_rates,
+            "alpha" : self.alphas
+        })
+        df.to_csv(path, index=False)
+
 
 def save_predictions(pred_arr):
     y_true_real = []

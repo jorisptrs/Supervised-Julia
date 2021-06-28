@@ -16,9 +16,9 @@ import save
 
 DATASET_SIZE = 2000
 BATCH_SIZE = 128
-TEST_SET_PROP = 0.5
+TEST_SET_PROP = 0.7
 
-N_FOLDS = 2
+N_FOLDS = 3
 EPOCHS = 10
 
 CORES = multiprocessing.cpu_count()
@@ -27,6 +27,8 @@ MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
 
 DEBUG = True
+
+graph = save.Graph()
 
 
 def load_data():
@@ -75,7 +77,7 @@ def feedforward(train_loader, val_loader, config, show_results = False):
         #save.save_loss(train_losses, val_losses)
         #save.save_predictions(model.y_compare)
 
-    return val_losses[-1]
+    return (train_losses, val_losses)
 
 def crossvalidation(dataset):
     """
@@ -110,7 +112,11 @@ def crossvalidation(dataset):
             val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
      
             # Add final validation risk
-            running_val_risk += feedforward(train_loader, val_loader, config, True)
+            train_losses, val_losses = feedforward(train_loader, val_loader, config, True)
+            running_val_risk += val_losses[-1]
+
+            graph.append(fold, train_losses, val_losses, lr, alpha)
+
         risks.append((config, running_val_risk / N_FOLDS))
     
     best_config = min(risks, key = lambda t: t[1])[0]
@@ -126,6 +132,8 @@ def crossvalidation(dataset):
 
     if DEBUG:
         print("Optimal config: ", best_config)
+
+    graph.save()
 
     (train_loader, val_loader) = onetime_split(dataset)
     feedforward(train_loader, val_loader, best_config, True)
