@@ -64,6 +64,6 @@ private:
             dist = (z.imag() * z.imag()) + (z.real() * z.real());
             if (dist > escapeDistance) return(ec);
         }
-        return 0;
+        return iterations;
     }
 };

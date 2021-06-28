@@ -59,7 +59,7 @@ def feedforward(train_loader, val_loader, config, show_results = False):
     model.to(DEVICE)
 
     optimizer = Adam(model.parameters(), config['lr'], weight_decay=config['alpha'])
-    loss_func = nn.MSELoss().to(DEVICE)
+    loss_func = nn.L1Loss().to(DEVICE)
 
     train_losses = []
     val_losses = []
