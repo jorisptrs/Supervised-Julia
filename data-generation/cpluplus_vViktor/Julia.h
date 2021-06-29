@@ -82,9 +82,10 @@ private:
         for (int ec = 0; ec < iterations; ec++) {
             z = z * z; z = z + c;
             dist = (z.imag() * z.imag()) + (z.real() * z.real());
+            dist = sqrt(dist);
             if (dist > escapeDistance) return(ec);
         }
-        return 0;
+        return iterations;
     }
     myBitmap bmp;
 };
