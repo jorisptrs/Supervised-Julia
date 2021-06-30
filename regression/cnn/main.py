@@ -1,7 +1,6 @@
-from save import plot_4, plot_at_idx
-import numpy as np
-import torch.nn as nn
+
 import torch
+import torch.nn as nn
 from torch.optim import Adam, SGD
 from sklearn.model_selection import KFold
 
@@ -22,13 +21,11 @@ N_FOLDS = 3
 EPOCHS = 10
 
 CORES = multiprocessing.cpu_count()
-DEVICE = 'cpu'#'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
 
 DEBUG = True
-
-graph = save.Graph()
 
 
 def load_data():
@@ -51,7 +48,7 @@ def onetime_split(dataset):
 
     return (training_loader, validation_loader)
 
-def feedforward(train_loader, val_loader, config, show_results = False):
+def feedforward(train_loader, val_loader, config, store_pred=False):
     """
     Train a CNN for EPOCHS epochs.
     """
@@ -68,14 +65,8 @@ def feedforward(train_loader, val_loader, config, show_results = False):
         print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
         train_loss = model.train(train_loader, optimizer, loss_func, DEVICE) 
         train_losses.append(train_loss)
-        val_loss = model.validation(val_loader, loss_func, DEVICE) 
+        val_loss = model.validation(val_loader, loss_func, DEVICE, store_pred=store_pred) 
         val_losses.append(val_loss)
-    
-    if show_results:
-        #save.model_save(model, MODEL_NAME)
-        save.graph_loss(train_losses, val_losses)
-        #save.save_loss(train_losses, val_losses)
-        #save.save_predictions(model.y_compare)
 
     return (train_losses, val_losses)
 
@@ -84,10 +75,11 @@ def crossvalidation(dataset):
     Outer loop of k-fold crossvalidation.
     """
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
+    dataframe = save.TrainingData()
 
     lrs = [.03]#[.001, .003, .01, .03]
     alphas = [0]#,.4,.3,.2,.1,.07,.05] # Originally .09
-    #lrs = [x for x in range(0,.5,.05)]
+
     risks = []
     # iterate through flexibilities
     for (lr, alpha) in itertools.product(lrs, alphas):
@@ -112,40 +104,32 @@ def crossvalidation(dataset):
             val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
      
             # Add final validation risk
-            train_losses, val_losses = feedforward(train_loader, val_loader, config, True)
+            train_losses, val_losses = feedforward(train_loader, val_loader, config)
             running_val_risk += val_losses[-1]
 
-            graph.append(fold, train_losses, val_losses, lr, alpha)
+            dataframe.append_fold(fold, train_losses, val_losses)
 
-        risks.append((config, running_val_risk / N_FOLDS))
+        risk = running_val_risk / N_FOLDS
+
+        dataframe.append_risk(risk, lr, alpha)
+        risks.append((config, risk))
     
     best_config = min(risks, key = lambda t: t[1])[0]
-    
-    # Plot THE curve
-    # alpha_dict = {x : 0.0 for x in alphas}
-    # for elem in risks:
-    #     if np.isnan(elem[1]):
-    #         print("Config caused nan/infinite loss")
-    #         continue
-    #     alpha_dict[elem[0]['alpha']] += (elem[1] / len(lrs))
-    # print(alpha_dict)
 
     if DEBUG:
         print("Optimal config: ", best_config)
 
-    graph.save()
-
-    (train_loader, val_loader) = onetime_split(dataset)
-    feedforward(train_loader, val_loader, best_config, True)
+    dataframe.save()
 
 
 if __name__ == "__main__":
     if DEBUG:
-        print("Operating on " + DEVICE)
+        print("Operating on: " + DEVICE)
     juliaDataset = load_data()
-
-    #plot_4(juliaDataset)
-    plot_at_idx(juliaDataset, 13)
-
+    
     crossvalidation(juliaDataset)
+
+    # config = {'lr' : 0.03, 'alpha' : 0}
+    # training_loader, validation_loader = onetime_split(juliaDataset)
+    # feedforward(training_loader, validation_loader, config, store_pred=True)
     

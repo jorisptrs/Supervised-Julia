@@ -2,11 +2,15 @@
 import torch
 import matplotlib.pyplot as plt
 import pandas as pd
-import time
 import numpy as np
 
+import requests
+import zipfile
+import time
+import os
 
-class Graph:
+
+class TrainingData:
 
     def __init__(self):
         self.folds = []
@@ -15,49 +19,59 @@ class Graph:
         self.epochs = []
         self.learning_rates = []
         self.alphas = []
+        self.risks = []
 
-    def append(self, fold, train_losses, val_losses, learning_rate, alpha):
+    def append_fold(self, fold, train_losses, val_losses):
         n = len(train_losses)
         self.folds += [fold + 1] * n
         self.epochs += list(range(1, n + 1))
         self.train_losses += train_losses
         self.val_losses += val_losses
-        self.learning_rates += [learning_rate] * n
-        self.alphas += [alpha] * n
 
-    def save(self, path="data1.csv"):
-        df = pd.DataFrame({
+    def append_risk(self, risk, learning_rate, alpha):
+        self.learning_rates.append(learning_rate)
+        self.alphas.append(alpha)
+        self.risks.append(risk)
+
+    def save(self, path="", index=False):
+        df1 = pd.DataFrame({
             "fold": self.folds,
             "epoch": self.epochs,
             "train_losses": self.train_losses,
-            "val_losses": self.val_losses,
-            "learning_rate" : self.learning_rates,
+            "val_losses": self.val_losses
+        })
+        df2 = pd.DataFrame({
+            "risk" : self.risks,
+            "learning rate" : self.learning_rates,
             "alpha" : self.alphas
         })
-        df.to_csv(path, index=False)
+        df1.to_csv(os.path.join(path, "folds.csv"), index=index)
+        df2.to_csv(os.path.join(path, "risks.csv"), index=index)
 
 
-def save_predictions(pred_arr):
-    y_true_real = []
-    y_true_img = []
-    y_pred_real = []
-    y_pred_img = []
-    for i in range(len(pred_arr)):
-        y_true = pred_arr[i][0]
-        y_pred = pred_arr[i][1]
-        y_true_real.append(y_true[0])
-        y_true_img.append(y_true[1])
-        y_pred_real.append(y_pred[0])
-        y_pred_img.append(y_pred[1])
+class PredictionData:
 
-    output = pd.DataFrame(list(zip(y_true_real, y_true_img, y_pred_real, y_pred_img)))
-    output.columns = ['y_true_real', 'y_true_img', 'y_pred_real', 'y_pred_img']
-    output.to_csv('predictions.csv', index=False)
+    def __init__(self):
+        self.y_actual_reals = []
+        self.y_actual_imgs = []
+        self.y_pred_reals = []
+        self.y_pred_imgs = []
 
-def save_loss(loss_arr, val_arr):
-    output = pd.DataFrame(loss_arr)
-    output.columns = ['loss']
-    output.to_csv('loss.csv', index=False)
+    def append(self, y_actual_real, y_actual_img, y_pred_real, y_pred_img):
+        self.y_actual_reals.append(y_actual_real)
+        self.y_actual_imgs.append(y_actual_img)
+        self.y_pred_reals.append(y_pred_real)
+        self.y_pred_imgs.append(y_pred_img)
+
+    def save(self, path="", index=False):
+        df = pd.DataFrame({
+            "y_actual_real" : self.y_actual_reals,
+            "y_actual_img" : self.y_actual_imgs,
+            "y_pred_real" : self.y_pred_reals,
+            "y_pred_img" : self.y_pred_imgs
+        })
+        df.to_csv(os.path.join(path, "predictions.csv"), index=index)
+
 
 def graph_loss(loss_arr, val_losses):
     plt.title("Training loss")
@@ -93,3 +107,37 @@ def plot_at_idx(data_set, idx):
     plt.imshow(full_img, cmap=plt.cm.gray_r)
     ax.set_title('y: {}'.format(data_set.y[idx]))
     plt.show()
+
+def download_data(path, google_drive_id='13jpZFAuGekt3qZoikFs5VaD-0XUO8zdc', debug=True):
+    """
+    Download the dataset from google drive to data the 'data'-folder.
+    based on https://github.com/ndrplz/google-drive-downloader
+    """      
+    url = "https://docs.google.com/uc?export=download"
+    session = requests.Session()
+    data_path = os.path.join(path, "data")
+
+    if debug:
+        print("Retrieving data from google drive...")  
+    response = session.get(url, params={'id': google_drive_id}, stream=True)
+
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            response = session.get(url, params={'id': google_drive_id, 'confirm': value}, stream=True)
+            break
+            
+    with open(data_path, "wb") as f:
+        for chunk in response.iter_content(32768):
+            if chunk:
+                f.write(chunk)
+
+    try:
+        if debug:
+            print('Unzipping...')
+        with zipfile.ZipFile(data_path, 'r') as z:
+            z.extractall(os.path.dirname(data_path))
+            if debug:
+                print("Zipping Complete.")
+    except:
+        if debug:
+            print("Zipping Failed.")
