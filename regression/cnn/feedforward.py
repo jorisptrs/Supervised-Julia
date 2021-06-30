@@ -2,8 +2,6 @@
 import torch
 import torch.nn as nn
 
-import save
-
 
 class CNN(nn.Module):
     """
@@ -68,14 +66,14 @@ class CNN(nn.Module):
             running_loss += self.batch(x, y, optimizer, loss_func)
         return running_loss / len(train_set)
 
-    def validation(self, val_set, loss_func, device, store_pred=False):
+    def validation(self, val_set, loss_func, device):
         """
         Compute predictions on the lock-box validation set and print them if desired.
         Return the total loss.
         """
         loss = 0.0
-        if store_pred:
-            self.predictions = save.PredictionData()
+        y_actual = []
+        y_pred = []
         
         with torch.no_grad():
             for (x, y) in val_set:
@@ -85,11 +83,7 @@ class CNN(nn.Module):
                 yhat = self.forward(x)
                 loss += loss_func(yhat, y).item()
 
-                if store_pred:
-                    for i, y_pred in enumerate(yhat):
-                        self.predictions.append(y_pred[0].item(), y_pred[1].item(), y[i][0].item(), y[i][1].item())
-
-        if store_pred:
-            self.predictions.save()
+                y_actual.append(y)
+                y_pred.append(yhat)
                        
-        return loss  
+        return (loss, y_actual, y_pred)

@@ -19,21 +19,22 @@ TEST_SET_PROP = 0.7
 
 N_FOLDS = 3
 EPOCHS = 10
+CROSSVALIDATION = False
 
 CORES = multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
-
 DEBUG = True
 
 
-def load_data():
+def load_data(path, size):
     """
     Returns the loaded dataset
     """
-    dataset = data.JuliaDataset(DATASET_PATH, DATASET_SIZE, CORES, DEBUG)
+    dataset = data.JuliaDataset(path, size, CORES, DEBUG)
     return dataset
+
 
 def onetime_split(dataset):
     """
@@ -48,7 +49,8 @@ def onetime_split(dataset):
 
     return (training_loader, validation_loader)
 
-def feedforward(train_loader, val_loader, config, store_pred=False):
+
+def feedforward(train_loader, val_loader, config):
     """
     Train a CNN for EPOCHS epochs.
     """
@@ -62,27 +64,28 @@ def feedforward(train_loader, val_loader, config, store_pred=False):
     val_losses = []
         
     for epoch in range(EPOCHS):
-        print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
+        if DEBUG:
+            print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
         train_loss = model.train(train_loader, optimizer, loss_func, DEVICE) 
         train_losses.append(train_loss)
-        val_loss = model.validation(val_loader, loss_func, DEVICE, store_pred=store_pred) 
+        val_loss, y_actual, y_pred = model.validation(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
 
-    return (train_losses, val_losses)
+    return (train_losses, val_losses, y_actual, y_pred)
+
 
 def crossvalidation(dataset):
     """
     Outer loop of k-fold crossvalidation.
     """
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
-    dataframe = save.TrainingData()
+    dataframe = save.DataFrame()
 
     lrs = [.03]#[.001, .003, .01, .03]
-    alphas = [0]#,.4,.3,.2,.1,.07,.05] # Originally .09
+    alphas = [0, 0.09]#,.4,.3,.2,.1,.07,.05] # Originally .09
 
-    risks = []
     # iterate through flexibilities
-    for (lr, alpha) in itertools.product(lrs, alphas):
+    for (comb, (lr, alpha)) in enumerate(itertools.product(lrs, alphas)):
         config = {'lr' : lr, 'alpha' : alpha}
         if DEBUG:
             print("Learning rate: " + str(lr))
@@ -91,7 +94,6 @@ def crossvalidation(dataset):
         running_val_risk = 0.0
         # iterate through k folds
         for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset.x)):
-            
             if DEBUG:
                 print("Fold " + str(fold + 1) + " out of " + str(N_FOLDS))
 
@@ -104,20 +106,12 @@ def crossvalidation(dataset):
             val_loader = torch.utils.data.DataLoader(dataset, sampler=val_sampler, batch_size=BATCH_SIZE, num_workers=CORES)
      
             # Add final validation risk
-            train_losses, val_losses = feedforward(train_loader, val_loader, config)
+            train_losses, val_losses, y_actual, y_pred = feedforward(train_loader, val_loader, config)
             running_val_risk += val_losses[-1]
 
-            dataframe.append_fold(fold, train_losses, val_losses)
+            dataframe.append_fold(comb, fold, train_losses, val_losses)
 
-        risk = running_val_risk / N_FOLDS
-
-        dataframe.append_risk(risk, lr, alpha)
-        risks.append((config, risk))
-    
-    best_config = min(risks, key = lambda t: t[1])[0]
-
-    if DEBUG:
-        print("Optimal config: ", best_config)
+        dataframe.append_risk(running_val_risk / N_FOLDS, lr, alpha)
 
     dataframe.save()
 
@@ -125,11 +119,19 @@ def crossvalidation(dataset):
 if __name__ == "__main__":
     if DEBUG:
         print("Operating on: " + DEVICE)
-    juliaDataset = load_data()
-    
-    crossvalidation(juliaDataset)
 
-    # config = {'lr' : 0.03, 'alpha' : 0}
-    # training_loader, validation_loader = onetime_split(juliaDataset)
-    # feedforward(training_loader, validation_loader, config, store_pred=True)
+    if CROSSVALIDATION:
+        juliaDataset = load_data(DATASET_PATH, DATASET_SIZE)
+        crossvalidation(juliaDataset)
+    else:
+        config = {'lr' : 0.03, 'alpha' : 0} # use best config
+
+        juliaDataset = load_data(DATASET_PATH, DATASET_SIZE) # change to final test set
+        
+        training_loader, validation_loader = onetime_split(juliaDataset)
+        train_losses, val_losses, y_actual, y_pred = feedforward(training_loader, validation_loader, config)
+
+        predictions = save.PredictionData()
+        predictions.append(y_actual, y_pred)
+        predictions.save()
     

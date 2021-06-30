@@ -10,7 +10,7 @@ import time
 import os
 
 
-class TrainingData:
+class DataFrame:
 
     def __init__(self):
         self.folds = []
@@ -20,10 +20,12 @@ class TrainingData:
         self.learning_rates = []
         self.alphas = []
         self.risks = []
+        self.combinations = []
 
-    def append_fold(self, fold, train_losses, val_losses):
+    def append_fold(self, comb, fold, train_losses, val_losses):
         n = len(train_losses)
         self.folds += [fold + 1] * n
+        self.combinations += [comb + 1] * n
         self.epochs += list(range(1, n + 1))
         self.train_losses += train_losses
         self.val_losses += val_losses
@@ -35,17 +37,19 @@ class TrainingData:
 
     def save(self, path="", index=False):
         df1 = pd.DataFrame({
+            "combination" : self.combinations,
             "fold": self.folds,
             "epoch": self.epochs,
-            "train_losses": self.train_losses,
-            "val_losses": self.val_losses
+            "train_loss": self.train_losses,
+            "val_loss": self.val_losses
         })
+        df1.to_csv(os.path.join(path, "folds.csv"), index=index)
         df2 = pd.DataFrame({
+            "combination" : list(range(1, len(self.risks) + 1)),
             "risk" : self.risks,
             "learning rate" : self.learning_rates,
             "alpha" : self.alphas
         })
-        df1.to_csv(os.path.join(path, "folds.csv"), index=index)
         df2.to_csv(os.path.join(path, "risks.csv"), index=index)
 
 
@@ -57,7 +61,13 @@ class PredictionData:
         self.y_pred_reals = []
         self.y_pred_imgs = []
 
-    def append(self, y_actual_real, y_actual_img, y_pred_real, y_pred_img):
+    def append(self, y_actual, y_pred):
+        assert len(y_actual) == len(y_pred)
+        for i in range(len(y_actual)):
+            for j in range(len(y_actual[i])):
+                self.add_row(y_actual[i][j][0].item(), y_actual[i][j][1].item(), y_pred[i][j][0].item(), y_pred[i][j][1].item())
+
+    def add_row(self, y_actual_real, y_actual_img, y_pred_real, y_pred_img):
         self.y_actual_reals.append(y_actual_real)
         self.y_actual_imgs.append(y_actual_img)
         self.y_pred_reals.append(y_pred_real)
