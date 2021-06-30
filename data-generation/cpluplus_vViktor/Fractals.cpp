@@ -37,26 +37,16 @@ const double rStep = 10; // Radius step
 const double minDistanceOnCircle = 4; // For ideal space representation this should be close to rStep
 const double noiseMagnitude = 0.1; // Making this higher than rStep or minDst can lead to a data duplication
 
-void interactive() {
+void interactive(long double cReal, long double cImg, std::string name) {
     std::complex<long double> c;
+    c.imag(cImg);
+    c.real(cReal);
 
-    long double cReal, cImg;
-
-    while (true) {
-        std::cout << "Real: ";
-        std::cin >> cReal;
-        std::cout << "Img: ";
-        std::cin >> cImg;
-
-        c.imag(cImg);
-        c.real(cReal);
-        auto start = std::chrono::system_clock::now();
-        julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
-        j.draw(c);
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        printf("%f\n", elapsed_seconds.count());
-    }
+    julia j(BMP_WIDTH, BMP_HEIGHT, ITERATIONS, xmin, xmax, ymin, ymax, ESCAPE_THRESHOLD);
+    std::string data = j.draw(c);
+    std::ofstream dataFile(name);
+    dataFile << data;
+    dataFile.close();
 }
 
 
@@ -122,6 +112,11 @@ void generateData() {
 
 int main(int argc, char* argv[]) {
 
-    generateData();
+    if (argc == 4) {
+        interactive(std::stod(argv[1]), std::stod(argv[2]), argv[3]);
+    } else {
+        generateData();
+    }
+
     return 0;
 }

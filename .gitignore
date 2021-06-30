@@ -2,9 +2,9 @@
 trainingData/
 *.rar
 *.zip
+*.jset
 
 # Output Data
-*.jmodel
 *.dat
 *.csv
 *model

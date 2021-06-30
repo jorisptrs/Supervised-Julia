@@ -2,10 +2,14 @@
 library(tidyverse)
 library(ggplot2)
 
-dat <- read.csv("../nn/viktor/predictions.csv", header=TRUE)
+#setwd("~/Documents/Supervised-Julia/regression/cnn")
+
+dat <- read.csv("predictions.csv", header=TRUE)
 view(dat)
 
-(p <- ggplot(dat, aes(x=y_true_real, y=y_pred_real)) +
+plot(dat$y_actual_real, dat$y_actual_img)
+
+(p <- ggplot(dat, aes(x=y_actual_real, y=y_pred_real)) +
     geom_point() +
     ggtitle("") + 
     ylab("Predicted Re{c}") +
@@ -16,7 +20,7 @@ view(dat)
     theme(legend.position="none")
 )
 
-(p <- ggplot(dat, aes(x=y_true_img, y=y_pred_img)) +
+(p <- ggplot(dat, aes(x=y_actual_img, y=y_pred_img)) +
     geom_point() +
     ggtitle("") + 
     ylab("Predicted Im{c}") +
