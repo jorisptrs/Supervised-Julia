@@ -9,7 +9,6 @@ import multiprocessing
 
 import save
 
-
 class JuliaDataset(torch.utils.data.Dataset):
     """
     Our custom dataset.
@@ -18,9 +17,14 @@ class JuliaDataset(torch.utils.data.Dataset):
     def __init__(self, dataset_path, dataset_size, num_cores, debug=True):
         self.dataset_path = dataset_path
         self.dataset_size = dataset_size
+        self.meta_data = dict()
+
+        if dataset_size == -1:
+            self.read_header(dataset_path)
+            self.dataset_size = int(self.meta_data["N_DATA"])
+
         self.num_cores = num_cores
         self.debug = debug
-        self.meta_data = dict()
         self.x = []
         self.y = []
         self.load_images()
@@ -36,6 +40,8 @@ class JuliaDataset(torch.utils.data.Dataset):
         Returns features and labels at index idx
         """
         return (self.x[idx], self.y[idx])
+
+    
 
     def read_header(self, path, header_name="header.txt"):
         """

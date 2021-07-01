@@ -87,3 +87,4 @@ class CNN(nn.Module):
                 y_pred.append(yhat)
                        
         return (loss, y_actual, y_pred)
+    

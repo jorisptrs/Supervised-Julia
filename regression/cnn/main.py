@@ -17,12 +17,13 @@ BATCH_SIZE = 128
 TRAINING_SET_PROP = 0.7
 
 N_FOLDS = 3
-EPOCHS = 3
+EPOCHS = 30
 CROSSVALIDATION = False
 
-CORES = multiprocessing.cpu_count()
+CORES = 2 # multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
+MODEL_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','models')
 DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
 DEBUG = True
 
@@ -32,8 +33,7 @@ def load_data(path, size):
     Returns the loaded dataset
     """
     dataset = data.JuliaDataset(path, size, CORES, DEBUG)
-    return dataset
-
+    return dataset    
 
 def onetime_split(dataset):
     """
@@ -69,6 +69,8 @@ def feedforward(train_loader, val_loader, config):
         train_losses.append(train_loss)
         val_loss, y_actual, y_pred = model.validation(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
+
+    save.model_save(model, os.path.join(MODEL_PATH, MODEL_NAME))
 
     return (train_losses, val_losses, y_actual, y_pred)
 
@@ -133,4 +135,5 @@ if __name__ == "__main__":
         predictions = save.PredictionData()
         predictions.append(y_actual, y_pred)
         predictions.save()
+        save.save_loss(train_losses, val_losses)
     

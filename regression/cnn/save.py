@@ -83,6 +83,13 @@ class PredictionData:
         df.to_csv(os.path.join(path, "predictions.csv"), index=index)
 
 
+def save_loss(train_losses, val_losses, path="", index=False):
+    df = pd.DataFrame({
+        "train_loss" : train_losses,
+        "val_loss" : val_losses
+    })
+    df.to_csv(os.path.join(path, "loss.csv"), index=index)
+
 def graph_loss(loss_arr, val_losses):
     plt.title("Training loss")
     plt.plot(loss_arr, label="train")
