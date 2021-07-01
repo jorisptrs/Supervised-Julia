@@ -12,15 +12,16 @@ import data
 from feedforward import CNN
 import save
 
-DATASET_SIZE = 2000
+DATASET_SIZE = 10000
 BATCH_SIZE = 128
+
+N_FOLDS = 5
+EPOCHS = 30
+CROSSVALIDATION = True
+
 TRAINING_SET_PROP = 0.7
 
-N_FOLDS = 3
-EPOCHS = 30
-CROSSVALIDATION = False
-
-CORES = 2 # multiprocessing.cpu_count()
+CORES = 4 # multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_v1.jmodel"
 MODEL_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','models')
@@ -32,8 +33,8 @@ def load_data(path, size):
     """
     Returns the loaded dataset
     """
-    dataset = data.JuliaDataset(path, size, CORES, DEBUG)
-    return dataset    
+    return data.JuliaDataset(path, size, CORES, DEBUG)   
+
 
 def onetime_split(dataset):
     """
@@ -70,8 +71,6 @@ def feedforward(train_loader, val_loader, config):
         val_loss, y_actual, y_pred = model.validation(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
 
-    save.model_save(model, os.path.join(MODEL_PATH, MODEL_NAME))
-
     return (train_losses, val_losses, y_actual, y_pred)
 
 
@@ -82,13 +81,14 @@ def crossvalidation(dataset):
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
     dataframe = save.DataFrame()
 
-    lrs = [.03]#[.001, .003, .01, .03]
-    alphas = [0, 0.09]#,.4,.3,.2,.1,.07,.05] # Originally .09
+    lrs = [0.0001, 0.001, 0.01, 0.1]
+    alphas = [0, 0.0001, 0.001, 0.01, 0.1]
 
     # iterate through flexibilities
     for (comb, (lr, alpha)) in enumerate(itertools.product(lrs, alphas)):
         config = {'lr' : lr, 'alpha' : alpha}
         if DEBUG:
+            print("Combination: " + str(comb + 1))
             print("Learning rate: " + str(lr))
             print("Alpha: " + str(alpha))
         
@@ -110,7 +110,7 @@ def crossvalidation(dataset):
             train_losses, val_losses, y_actual, y_pred = feedforward(train_loader, val_loader, config)
             running_val_risk += val_losses[-1]
 
-            dataframe.append_fold(comb, fold, train_losses, val_losses)
+            #dataframe.append_fold(comb, fold, train_losses, val_losses)
 
         dataframe.append_risk(running_val_risk / N_FOLDS, lr, alpha)
 

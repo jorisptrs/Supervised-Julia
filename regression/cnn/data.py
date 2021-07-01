@@ -39,9 +39,7 @@ class JuliaDataset(torch.utils.data.Dataset):
         """
         Returns features and labels at index idx
         """
-        return (self.x[idx], self.y[idx])
-
-    
+        return (self.x[idx], self.y[idx])   
 
     def read_header(self, path, header_name="header.txt"):
         """
@@ -65,7 +63,6 @@ class JuliaDataset(torch.utils.data.Dataset):
         old_shape = x.shape
         x = x.reshape(old_shape[0], -1)
         scaler = preprocessing.MinMaxScaler()
-        #scaler = preprocessing.StandardScaler()
         x = scaler.fit_transform(x)
         x = x.reshape(old_shape)
         return x
