@@ -12,13 +12,12 @@ import data
 from feedforward import CNN
 import save
 
-
 DATASET_SIZE = 2000
 BATCH_SIZE = 128
-TEST_SET_PROP = 0.7
+TRAINING_SET_PROP = 0.7
 
 N_FOLDS = 3
-EPOCHS = 10
+EPOCHS = 3
 CROSSVALIDATION = False
 
 CORES = multiprocessing.cpu_count()
@@ -40,7 +39,7 @@ def onetime_split(dataset):
     """
     Split into training- and validation sets.
     """
-    training_size = int(DATASET_SIZE * TEST_SET_PROP)
+    training_size = int(DATASET_SIZE * TRAINING_SET_PROP)
     validation_size = DATASET_SIZE - training_size
     training_set, validation_set = torch.utils.data.random_split(dataset, [training_size, validation_size])
 
