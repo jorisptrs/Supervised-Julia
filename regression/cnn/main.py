@@ -17,7 +17,7 @@ BATCH_SIZE = 128
 
 N_FOLDS = 5
 EPOCHS = 30
-CROSSVALIDATION = True
+CROSSVALIDATION = False
 
 TRAINING_SET_PROP = 0.7
 
@@ -70,6 +70,8 @@ def feedforward(train_loader, val_loader, config):
         train_losses.append(train_loss)
         val_loss, y_actual, y_pred = model.validation(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
+
+    save.model_save(model, MODEL_NAME)
 
     return (train_losses, val_losses, y_actual, y_pred)
 
@@ -125,7 +127,7 @@ if __name__ == "__main__":
         juliaDataset = load_data(DATASET_PATH, DATASET_SIZE)
         crossvalidation(juliaDataset)
     else:
-        config = {'lr' : 0.03, 'alpha' : 0} # use best config
+        config = {'lr' : 0.001, 'alpha' : 0.01} # use best config
 
         juliaDataset = load_data(DATASET_PATH, DATASET_SIZE) # change to final test set
         
@@ -136,4 +138,5 @@ if __name__ == "__main__":
         predictions.append(y_actual, y_pred)
         predictions.save()
         save.save_loss(train_losses, val_losses)
+        
     

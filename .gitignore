@@ -6,8 +6,6 @@ trainingData/
 
 # Output Data
 *.dat
-*.csv
-*model
 
 # Testing MNIST Data
 **/*MNIST/
