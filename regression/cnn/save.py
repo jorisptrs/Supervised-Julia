@@ -36,14 +36,14 @@ class DataFrame:
         self.risks.append(risk)
 
     def save(self, path="", index=False):
-        # df1 = pd.DataFrame({
-        #     "combination" : self.combinations,
-        #     "fold": self.folds,
-        #     "epoch": self.epochs,
-        #     "train_loss": self.train_losses,
-        #     "val_loss": self.val_losses
-        # })
-        # df1.to_csv(os.path.join(path, "folds.csv"), index=index)
+        df1 = pd.DataFrame({
+            "combination" : self.combinations,
+            "fold": self.folds,
+            "epoch": self.epochs,
+            "train_loss": self.train_losses,
+            "val_loss": self.val_losses
+        })
+        df1.to_csv(os.path.join(path, "folds.csv"), index=index)
         df2 = pd.DataFrame({
             "combination" : list(range(1, len(self.risks) + 1)),
             "risk" : self.risks,

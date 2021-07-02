@@ -110,7 +110,7 @@ def crossvalidation(dataset):
             train_losses, val_losses, y_actual, y_pred = feedforward(train_loader, val_loader, config)
             running_val_risk += val_losses[-1]
 
-            #dataframe.append_fold(comb, fold, train_losses, val_losses)
+            dataframe.append_fold(comb, fold, train_losses, val_losses)
 
         dataframe.append_risk(running_val_risk / N_FOLDS, lr, alpha)
 
