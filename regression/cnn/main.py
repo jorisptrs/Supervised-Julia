@@ -12,7 +12,7 @@ import data
 from feedforward import CNN
 import save
 
-DATASET_SIZE = 10000
+DATASET_SIZE = 500
 BATCH_SIZE = 128
 
 N_FOLDS = 5
@@ -58,7 +58,7 @@ def feedforward(train_loader, val_loader, config):
     model.to(DEVICE)
 
     optimizer = Adam(model.parameters(), config['lr'], weight_decay=config['alpha'])
-    loss_func = nn.L1Loss().to(DEVICE)
+    loss_func = nn.MSELoss().to(DEVICE)
 
     train_losses = []
     val_losses = []
@@ -83,8 +83,8 @@ def crossvalidation(dataset):
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
     dataframe = save.DataFrame()
 
-    lrs = [0.0001, 0.001, 0.01, 0.1]
-    alphas = [0, 0.0001, 0.001, 0.01, 0.1]
+    lrs = [0.001]#, 0.0001, 0.01, 0.1]
+    alphas = [0.09]#,0 0.0001, 0.001, 0.01, 0.1]
 
     # iterate through flexibilities
     for (comb, (lr, alpha)) in enumerate(itertools.product(lrs, alphas)):
@@ -137,6 +137,7 @@ if __name__ == "__main__":
         predictions = save.PredictionData()
         predictions.append(y_actual, y_pred)
         predictions.save()
+        save.graph_loss(train_losses, val_losses)
         save.save_loss(train_losses, val_losses)
         
     

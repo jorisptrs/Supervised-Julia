@@ -14,7 +14,7 @@ class CNN(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
-            nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(1, 4, kernel_size=11, stride=1, padding=0),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -28,7 +28,7 @@ class CNN(nn.Module):
 
         self.linear_layers = nn.Sequential(
             # Linear combination of conv outputs
-            nn.Linear(2048, 2)
+            nn.Linear(1508, 2)
         )
             
     def forward(self, x):
