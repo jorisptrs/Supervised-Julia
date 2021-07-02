@@ -23,18 +23,18 @@ const double ESCAPE_THRESHOLD = 3.0;
 /*
 * Data generation
 */
-const int nData = 10000;
-const std::string type = "RANDOM";
+const int nData = 450;
+const std::string type = "REPRESENTATIVE";
 /*
-* REPRESENTATIVE data generation
+* RANDOM data generation
 */
 const double sampleRadius = 2;
 
 /*
-* RANDOM data generation
+* REPRESENTATIVE data generation
 */
-const double rStep = 0.3; // Radius step
-const double minDistanceOnCircle = 0.3; // For ideal space representation this should be close to rStep
+const double rStep = 0.25; // Radius step
+const double minDistanceOnCircle = 0.25; // For ideal space representation this should be close to rStep
 const double noiseMagnitude = 0; // Making this higher than rStep or minDst can lead to a data duplication
 
 void interactive(long double cReal, long double cImg, std::string name) {

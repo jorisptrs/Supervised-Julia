@@ -24,7 +24,7 @@ def final_exam(model):
     y = y[0].numpy()
     yhat = yhat[0].numpy()
 
-    loss = np.absolute(y - yhat)
+    loss = np.power(y - yhat, 2)
     loss = np.sum(loss, axis=1)
 
     y = np.transpose(y)
