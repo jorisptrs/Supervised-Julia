@@ -12,14 +12,14 @@ import data
 from feedforward import CNN
 import save
 
-DATASET_SIZE = 500
+DATASET_SIZE = 10000
 BATCH_SIZE = 128
 
 N_FOLDS = 5
-EPOCHS = 30
-CROSSVALIDATION = False
+EPOCHS = 25
+CROSSVALIDATION = True
 
-TRAINING_SET_PROP = 0.7
+TRAINING_SET_PROP = 0.8
 
 CORES = 4 # multiprocessing.cpu_count()
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -66,12 +66,13 @@ def feedforward(train_loader, val_loader, config):
     for epoch in range(EPOCHS):
         if DEBUG:
             print("Epoch: " + str(epoch + 1) + " out of " + str(EPOCHS))
-        train_loss = model.train(train_loader, optimizer, loss_func, DEVICE) 
+        model.train(train_loader, optimizer, loss_func, DEVICE)
+        train_loss, _ , _ = model.compute_error(train_loader, loss_func, DEVICE)
         train_losses.append(train_loss)
-        val_loss, y_actual, y_pred = model.validation(val_loader, loss_func, DEVICE)
+        val_loss, y_actual, y_pred = model.compute_error(val_loader, loss_func, DEVICE)
         val_losses.append(val_loss)
 
-    save.model_save(model, MODEL_NAME)
+    #save.model_save(model, MODEL_NAME)
 
     return (train_losses, val_losses, y_actual, y_pred)
 
@@ -83,8 +84,8 @@ def crossvalidation(dataset):
     kfold = KFold(n_splits=N_FOLDS, shuffle=True)
     dataframe = save.DataFrame()
 
-    lrs = [0.001]#, 0.0001, 0.01, 0.1]
-    alphas = [0.09]#,0 0.0001, 0.001, 0.01, 0.1]
+    lrs = [0.0001, 0.001, 0.01, 0.1]
+    alphas = [0.0, 0.0001, 0.001, 0.01, 0.1]
 
     # iterate through flexibilities
     for (comb, (lr, alpha)) in enumerate(itertools.product(lrs, alphas)):

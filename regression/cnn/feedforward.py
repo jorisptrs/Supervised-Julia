@@ -14,7 +14,7 @@ class CNN(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # 1st conv layer
-            nn.Conv2d(1, 4, kernel_size=11, stride=1, padding=0),
+            nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -28,7 +28,7 @@ class CNN(nn.Module):
 
         self.linear_layers = nn.Sequential(
             # Linear combination of conv outputs
-            nn.Linear(1508, 2)
+            nn.Linear(2048, 2)
         )
             
     def forward(self, x):
@@ -44,7 +44,7 @@ class CNN(nn.Module):
 
     def batch(self, x, y, optimizer, loss_func):
         """
-        On a batch of SGD (one image), make one step of gradient descent using BP.
+        On a batch of SGD, make one step of gradient descent using BP.
         Return the loss.
         """
         yhat = self.forward(x)
@@ -52,23 +52,20 @@ class CNN(nn.Module):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        return loss.item()
 
     def train(self, train_set, optimizer, loss_func, device):
         """
         Train the network on the training set, while tracking the losses on the training-
         and validation sets.
         """
-        running_loss = 0.0
         for (x, y) in train_set:
             x = x.to(device).float()
             y = y.to(device).float()
-            running_loss += self.batch(x, y, optimizer, loss_func)
-        return running_loss / len(train_set)
+            self.batch(x, y, optimizer, loss_func)
 
-    def validation(self, val_set, loss_func, device):
+    def compute_error(self, data_set, loss_func, device):
         """
-        Compute predictions on the lock-box validation set and print them if desired.
+        Compute predictions on a given set and print them if desired.
         Return the total loss.
         """
         loss = 0.0
@@ -76,7 +73,7 @@ class CNN(nn.Module):
         y_pred = []
         
         with torch.no_grad():
-            for (x, y) in val_set:
+            for (x, y) in data_set:
                 x = x.to(device).float()
                 y = y.to(device).float()
 
@@ -85,6 +82,7 @@ class CNN(nn.Module):
 
                 y_actual.append(y)
                 y_pred.append(yhat)
-                       
+
+        loss /= len(data_set)
         return (loss, y_actual, y_pred)
     
