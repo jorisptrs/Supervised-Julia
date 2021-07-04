@@ -1,4 +1,8 @@
 # code from https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html
+"""
+Used for generating coloured interpolated graph over the test dataset loss
+"""
+
 
 import matplotlib.pyplot as plt
 import pandas as pd

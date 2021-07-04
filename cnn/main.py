@@ -1,3 +1,6 @@
+"""
+The main training pipeline
+"""
 
 import torch
 import torch.nn as nn
