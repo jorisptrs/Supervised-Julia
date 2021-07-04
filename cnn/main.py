@@ -15,7 +15,7 @@ import data
 from feedforward import CNN
 import save
 
-DATASET_SIZE = 10000
+DATASET_SIZE = 500
 BATCH_SIZE = 128
 
 N_FOLDS = 5
@@ -27,8 +27,8 @@ TRAINING_SET_PROP = 0.8
 CORES = multiprocessing.cpu_count() # or use 2 if it doesn't work
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 MODEL_NAME = "cnn_fractal_model_test.jmodel"
-MODEL_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','models')
-DATASET_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','trainingData')
+MODEL_PATH = os.path.join('models')
+DATASET_PATH = os.path.join('data')
 DEBUG = True
 
 
@@ -144,4 +144,3 @@ if __name__ == "__main__":
         save.graph_loss(train_losses, val_losses)
         save.save_loss(train_losses, val_losses)
         
-    

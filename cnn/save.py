@@ -90,6 +90,7 @@ def save_loss(train_losses, val_losses, path="", index=False):
     })
     df.to_csv(os.path.join(path, "loss.csv"), index=index)
 
+
 def graph_loss(loss_arr, val_losses):
     plt.title("Training loss")
     plt.plot(loss_arr, label="train")
@@ -97,14 +98,17 @@ def graph_loss(loss_arr, val_losses):
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
-    #plt.show()
+    # plt.show()
     plt.savefig("training_fig" + str(time.time()) + ".png")
+
 
 def model_save(model, path):
     torch.save(model.state_dict(), path)
 
+
 def model_load(model, path):
     model.load_state_dict(torch.load(path))
+
 
 def plot_4(data_set):
     # plotting example images
@@ -117,6 +121,7 @@ def plot_4(data_set):
         ax.set_title('y: {}'.format(label))
     plt.show()
 
+
 def plot_at_idx(data_set, idx):
     fig, ax = plt.subplots(1,1)
     full_img = np.concatenate((np.flip(np.flip(data_set.x[idx], 0), 1), data_set.x[idx]), axis=0)
@@ -125,36 +130,26 @@ def plot_at_idx(data_set, idx):
     ax.set_title('y: {}'.format(data_set.y[idx]))
     plt.show()
 
-def download_data(path, google_drive_id='13jpZFAuGekt3qZoikFs5VaD-0XUO8zdc', debug=True):
+
+def unzip_data(path, zip_name, debug=True):
     """
-    Download the dataset from google drive to data the 'data'-folder.
-    based on https://github.com/ndrplz/google-drive-downloader
+    Unzip Data Folder
     """      
-    url = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
-    data_path = os.path.join(path, "data")
+    data_path = os.path.join(path, zip_name)
 
-    if debug:
-        print("Retrieving data from google drive...")  
-    response = session.get(url, params={'id': google_drive_id}, stream=True)
+    new_folder = zip_name.replace(".zip","")
+    new_path = os.path.join(path, new_folder)
 
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            response = session.get(url, params={'id': google_drive_id, 'confirm': value}, stream=True)
-            break
-            
-    with open(data_path, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk:
-                f.write(chunk)
-
-    try:
-        if debug:
-            print('Unzipping...')
-        with zipfile.ZipFile(data_path, 'r') as z:
-            z.extractall(os.path.dirname(data_path))
+    if not os.path.exists(new_path):
+        try:
             if debug:
-                print("Zipping Complete.")
-    except:
-        if debug:
-            print("Zipping Failed.")
+                print('Unzipping...')
+            with zipfile.ZipFile(data_path, 'r') as z:
+                z.extractall(new_path)
+                if debug:
+                    print("Zipping Complete.")
+        except:
+            if debug:
+                print("Zipping Failed.")
+
+    return new_path

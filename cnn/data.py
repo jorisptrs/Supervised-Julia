@@ -66,16 +66,14 @@ class JuliaDataset(torch.utils.data.Dataset):
         x = x.reshape(old_shape)
         return x
 
-    def load_images(self, pooling=True, download=True):
+    def load_images(self, pooling=True, zip_name="trainingData.zip"):
         """
         After ensuring that the dataset is locally present, load features X and labels Y into their
         corresponding fields, both as numpy arrays.
         """
         file_names = []
 
-        if download and not os.path.exists(self.dataset_path):
-            os.mkdir(self.dataset_path)
-            save.download_data(self.dataset_path, debug=self.debug)
+        self.dataset_path = save.unzip_data(self.dataset_path, zip_name, debug=self.debug)
 
         self.read_header(self.dataset_path)
 
