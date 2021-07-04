@@ -51,7 +51,7 @@ def count_parameters(model):
 
 if __name__ == "__main__":
     
-    config = {'lr' : 0.03, 'alpha' : 0} # doesn't really matter for testing
+    config = {'lr' : 0.001, 'alpha' : 0.01} # use best config
     model = CNN(config)
     save.model_load(model, os.path.join(main.MODEL_PATH, main.MODEL_NAME))
 
