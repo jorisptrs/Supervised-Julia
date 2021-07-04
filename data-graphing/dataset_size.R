@@ -24,9 +24,9 @@ colors <- c("500"  =  "black", "1000"  =  "red", "5000"  =  "blue", "10000"  =  
     annotate("text", label="N=10000", x=1.3, y=0.005, color="black", size=3) +
     geom_line(aes(epochs, dat10000$val_loss, linetype  =  "Validation"),color="black") +
     xlab("Epoch") +
-    ylab("MSE Loss") +
-    ggtitle("Data Set Size (N) on Model Performance") +
-    scale_y_continuous(breaks  =  seq(0, 0.2, by = 0.025)) +
+    ylab("Loss") +
+    ggtitle("Dataset Size (N) on Model Performance") +
+    scale_y_continuous(breaks  =  seq(0, 0.2, by = 0.05)) +
     scale_x_continuous(breaks  =  seq(1, 25, by = 2)) +
     scale_linetype_manual(values  =  c("Training"="solid", "Validation"="dashed")) +
     theme(legend.position="bottom",legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
