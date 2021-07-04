@@ -17,11 +17,13 @@ def plot_at_idx(x):
     plt.imsave('c' + str(round(real, 3)) + " " + str(round(img, 3)) + "i.pdf", full_img, cmap=plt.cm.gray_r)
     plt.show()
 
-os.chdir("../data-generation/cpluplus_vViktor/")
+os.chdir("../data-generation/")
 os.system("make")
 os.system("./fractals " + str(real) + " " + str(img) + " " + name + " " + str(size))
 os.system("make clean")
-os.system("mv " + name + " ../../data-graphing/")
-os.chdir("../../data-graphing/")
+os.system("mv " + name + " ../data-graphing/")
+os.chdir("../data-graphing/")
 
 plot_at_idx(np.genfromtxt(name, delimiter=","))
+
+os.system("rm *.jset")
